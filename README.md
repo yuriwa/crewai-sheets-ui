@@ -9,7 +9,7 @@ The crewai-sheets-ui project is designed to automate the process of reading data
 3. Set up a `.env` file in the root directory with your API keys and other environment variables.
 
 ## Usage
-To use the SheetsCrew project, provide the URL of the Google Sheet when prompted. The script will read the data, create agents and tasks, and execute them accordingly.
+To use the project, provide the URL of the Google Sheet when prompted. The script will read the data, create agents and tasks, and execute them accordingly.
 
 ## Dependencies
 - dotenv
