@@ -2,3 +2,4 @@ python-dotenv
 langchain_openai
 crewai
 pandas
+open-interpreter

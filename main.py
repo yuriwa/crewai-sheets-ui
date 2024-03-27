@@ -34,23 +34,26 @@ class_mapping = {
 		'File Tool': FileTool.manage_file, 
 		'Search Internet': search, #search_tool,
 		'scrape_website': scrape_tool,#websitesc_search_tool,
-		'human_tools': human_tools                  
-		}	
+		'human_tools': human_tools}
 
-sheet_url = input("Please provide the URL of the google sheet:")
+
+print("\n\n============================= Starting crewai-sheets-ui =============================\n")
+print("Copy this sheet template and create your agents and tasks:\n")
+print("https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE\n")
+print("======================================================================================\n\n")
+sheet_url = input("Please provide the URL of your google sheet:")
 dataframes = Sheets.read_google_sheet(sheet_url)
 Agents = dataframes[0]
 Tasks = dataframes[1]
 
+print("\n\n=======================================================================================\n")
 print(f""""Found the following agents in the spreadsheet: \n {Agents}""")
-print(f""""Found the following Tasks in the spreadsheet: \n {Tasks}""")
-print(f"## Welcome to the {Agents['Team Name'][0]} Crew")
-print('------------------------------- \n')
-
-
-
-print("Creating agents:")
+print(f""""\nFound the following Tasks in the spreadsheet: \n {Tasks}""")
+print(f"\n=============================Welcome to the {Agents['Team Name'][0]} Crew ============================= \n\n") 
+ 
+print("Creating agents:\n")
 created_agents = []
+
 # Iterate over each agent
 for index, agent in Agents.iterrows():
 	non_printable_pattern = re.compile('[^\x20-\x7E]+')
@@ -73,15 +76,10 @@ for index, agent in Agents.iterrows():
 		verbose_bool = verbose
 	else:
 		verbose_bool = True if allow_delegation.lower() in ['true', '1', 't', 'y', 'yes'] else False
-	#use class_mapping dictionary to replace tool strings with classes
-	#tools = tools_string.split(',')
-	tools = [tool.strip() for tool in tools_string.split(',')]
-	print("######Tools Before \\nn")
-	print(tools)
 	
+	tools = [tool.strip() for tool in tools_string.split(',')]
 	tools = [class_mapping[tool] for tool in tools if tool in class_mapping]
-	print("#####Tools After: \n\n")
-	print(tools)
+	
 	#Finally crete the agent & append to created_agents
 	new_agent = Agent(
 			role=role,
@@ -90,7 +88,7 @@ for index, agent in Agents.iterrows():
 			tools = tools,
             allow_delegation = allow_delegation_bool,
 			verbose = verbose_bool,
-			llm = ChatOpenAI(model_name="stabilityai/stable-code-instruct-3b", temperature=0.0, base_url="http://localhost:1234/v1") if developer 
+			llm = ChatOpenAI(model_name="gpt-4-turbo-preview", temperature=0.0, base_url="http://localhost:1234/v1") if developer 
 					else ChatOpenAI(model_name="gpt-4-turbo-preview", temperature=0.2),
 			function_calling_llm= ChatOpenAI(model_name="gpt-4-turbo-preview", temperature=0.2)
 
@@ -102,7 +100,7 @@ for index, agent in Agents.iterrows():
 def get_agent_by_role(agents, desired_role):
     return next((agent for agent in agents if agent.role == desired_role), None)
 
-print("\nCreating tasks:")
+print("\n============================= Creating tasks: =============================\n")
 created_tasks = []
 assignment=Tasks['Assignment'][0] 
 # Iterate over each task
@@ -118,7 +116,9 @@ for index, task in Tasks.iterrows():
 			)
 	created_tasks.append(new_task)
 
-# Create Crew responsible for Copy
+
+print("\n============================= Engaging the crew =============================\n\n")
+
 crew = Crew(
 	agents=created_agents,
 	tasks=created_tasks,
@@ -131,7 +131,5 @@ assignment = crew.kickoff()
 
 
 # Print results
-print("\n\n########################")
-print("## Here is the result")
-print("########################\n")
+print("\n\n ============================= Here is the result =============================\n\n")
 print(assignment)
