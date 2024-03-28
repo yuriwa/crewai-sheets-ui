@@ -1,6 +1,7 @@
 python-dotenv
-langchain_openai
-crewai
+pydantic
+langchain
+crewai[tools]
 pandas
-open-interpreter
+#open-interpreter
 duckduckgo-search
