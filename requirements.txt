@@ -3,3 +3,4 @@ langchain_openai
 crewai
 pandas
 open-interpreter
+duckduckgo-search
