@@ -15,6 +15,7 @@ To use the project, provide the URL of the Google Sheet when prompted. The scrip
 - dotenv
 - langchain_openai
 - crewai
+- crewai[tools]
 - pandas
 
 For a complete list of dependencies, refer to the `requirements.txt` file.
