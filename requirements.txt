@@ -3,5 +3,5 @@ pydantic
 langchain
 crewai[tools]
 pandas
-open-interpreter
+open-interpreter # need for executor
 duckduckgo-search
