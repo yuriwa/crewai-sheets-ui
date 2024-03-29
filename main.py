@@ -102,10 +102,17 @@ def create_crew(created_agents, created_tasks):
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+    import argparse
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--sheet_url', help='The URL of the google sheet')
+    args=parser.parse_args()
 
     load_dotenv()
     greetings_print()
-    sheet_url = input("Please provide the URL of your google sheet:")
+    if args.sheet_url:
+        sheet_url=args.sheet_url
+    else:
+        sheet_url = input("Please provide the URL of your google sheet:")
     agents_df, tasks_df = parse_table(sheet_url)
     after_read_sheet_print(agents_df, tasks_df)
 
