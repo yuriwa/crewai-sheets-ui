@@ -1,6 +1,7 @@
 import pandas as pd
 
 class Sheets:
+    @staticmethod
     def read_google_sheet(sheet_url):
         base_url = sheet_url.split('/edit')[0]
         dataframes = []
