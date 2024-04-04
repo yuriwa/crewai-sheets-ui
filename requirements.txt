@@ -1,0 +1,7 @@
+python-dotenv
+pydantic
+langchain
+crewai[tools]
+pandas
+open-interpreter # need for executor
+duckduckgo-search
