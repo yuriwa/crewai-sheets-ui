@@ -3,10 +3,17 @@
 ## Overview
 The crewai-sheets-ui project is designed to automate the process of reading data from a Google Sheet, creating agents and tasks based on that data, and executing those tasks. This project utilizes a combination of external libraries and custom tools to manage and execute tasks efficiently.
 
+## version
+Python >=3.10<3.12
+
 ## Setup
-1. Clone the repository. `git clone https://github.com/yuriwa/crewai-sheets-ui.git`
-2. Install the required dependencies by running `pip install -r requirements.txt`.
-3. Set up a an .env file in the root directory with your API keys and other environment variables:
+1. `git clone https://github.com/yuriwa/crewai-sheets-ui.git`
+2. `python -m venv venv`
+3. for win `./venv/Scripts/actiavate` ; for unix-like `. venv/bin/activate`
+3. `pip install poetry`
+4. `cd crewai-sheets-ui`0
+5. `poetry install`
+6. Set up a an .env file in the root directory with your API keys and other environment variables:
     - edit `example.env` and then
     - `mv example.env .env`
 

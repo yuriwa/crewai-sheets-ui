@@ -4,7 +4,6 @@ from crewai import Crew, Task, Agent, Process
 
 from langchain_openai import ChatOpenAI  # for loading a local LLM
 
-
 from tools.tools import ToolsMapping
 from utils import Sheets
 
@@ -52,14 +51,14 @@ def create_agents_from_df(row):
 
     tools_names = [tool.strip() for tool in tools_string.split(',')]
     tools = [getattr(ToolsMapping, tool) for tool in tools_names if hasattr(ToolsMapping, tool)]
-    
+
     # Parse LLM configuration
     model_name = row.get('Model Name', 'gpt-4-turbo-preview')
     temperature = float(row.get('Temperature', 0.2))
     base_url = row.get('Base URL', None)
 
     llm_params = {'model_name': model_name, 'temperature': temperature}
-    
+
     # Adjust the instantiation based on whether a base URL is provided
     if base_url is not None and base_url == base_url:  # NaN is not equal to itself
         llm_params['base_url'] = base_url
@@ -109,7 +108,7 @@ if __name__ == "__main__":
     load_dotenv()
     greetings_print()
     if args.sheet_url:
-        sheet_url=args.sheet_url
+        sheet_url = args.sheet_url
     else:
         sheet_url = input("Please provide the URL of your google sheet:")
     agents_df, tasks_df = parse_table(sheet_url)
