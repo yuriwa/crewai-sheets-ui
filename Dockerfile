@@ -22,7 +22,7 @@ RUN echo "export VAR1=value1\nexport VAR2=value2" > /home/user/root/crewai-sheet
 EXPOSE 1234
 WORKDIR /home/user/root/savefiles
 
-CMD if [ -z "$OPENAI_API_KEY" ]; then \
+CMD if [ -z "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" ]; then \
       echo "Required environment variables are not set." && \
       echo "Run the Docker container, mapping local port 1234 to container port 1234 and the current directory to /home/user in the container:" && \
       echo "docker run -it -p 1234:1234 -v \${local/savefile/path}:/home/user/root/savefiles -e OPENAI_API_KEY='\${YOUR API KEY}' crewai-image"; \
