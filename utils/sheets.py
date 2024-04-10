@@ -30,3 +30,10 @@ class Sheets:
             dataframes.append(data)
 
         return dataframes
+    
+    @staticmethod
+    def parse_table(url="https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE"):
+        dataframes  = Sheets.read_google_sheet(url)
+        Agents      = dataframes[0]
+        Tasks       = dataframes[1]
+        return Agents, Tasks

@@ -1,132 +1,164 @@
-import re
-from textwrap import dedent
-from crewai import Crew, Task, Agent, Process
+import os
+os.environ['ANONYMIZED_TELEMETRY']  = 'False'                       # Disable interpreter telemetry
+os.environ['EC_TELEMETRY']          = 'False'                       # Disable embedchain telemetry
 
-from langchain_openai import ChatOpenAI  # for loading a local LLM
+#crewai
+from textwrap           import dedent
+from crewai             import Crew, Task, Agent, Process
+from langchain_openai   import ChatOpenAI  # for loading a local LLM
+from tools.tools        import ToolsMapping
+from utils              import Sheets
+from utils              import helpers
 
-
-from tools.tools import ToolsMapping
-from utils import Sheets
-
-
-def parse_table(url="https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE"):
-    dataframes = Sheets.read_google_sheet(url)
-    Agents = dataframes[0]
-    Tasks = dataframes[1]
-    return Agents, Tasks
-
-
-def greetings_print():
-    print("\n\n============================= Starting crewai-sheets-ui =============================\n")
-    print("Copy this sheet template and create your agents and tasks:\n")
-    print("https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE\n")
-    print("======================================================================================\n\n")
-
-
-def after_read_sheet_print(agents_df, tasks_df):
-    print("\n\n=======================================================================================\n")
-    print(f""""Found the following agents in the spreadsheet: \n {agents_df}""")
-    print(f""""\nFound the following tasks in the spreadsheet: \n {tasks_df}""")
-    print(
-        f"\n=============================Welcome to the {agents_df['Team Name'][0]} Crew ============================= \n\n")
-
-
-def get_agent_by_role(agents, desired_role):
-    return next((agent for agent in agents if agent.role == desired_role), None)
-
+#llamacpp
+from langchain_community.llms import LlamaCpp
+from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
+import  argparse
+#Load API keys from ENV
+from    dotenv  import load_dotenv
+load_dotenv()
 
 def create_agents_from_df(row):
-    non_printable_pattern = re.compile('[^\x20-\x7E]+')
-    id_clean = re.sub(non_printable_pattern, '', row['Agent Role'])  # Remove non-printable characters
-    id = id_clean.replace(' ', '_')  # Replace spaces with underscores
-    role = row['Agent Role']
-    goal = row['Goal']
-    backstory = row['Backstory']
-    tools_string = row['Tools']
-    allow_delegation = row['Allow delegation']
-    verbose = row['Verbose']
+    #LLM(s) for the agent
+        #TODO def agent_llm_from_config
+        #TODO def function_calling_llm_from_config
+    callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])  # Callbacks support token-wise streaming
+    llm=ChatOpenAI(
+        callback_manager= callback_manager,
+        base_url       = "http://localhost:1234/v1",
+        api_key        = "lm-studio",
+        model_name     = "gpt-4-turbo-preview",
+        temperature    = 0.8,
+        max_tokens     = -1,
+        streaming      = True,
+        verbose        = True, #Not available in OpenAI: n_predict = -1, top_k = 40, repeat_penalty= 1.1, min_p= 0.05
+        #model_kwargs={
+                        #"n_predict":-1,
+                        #"top_k":40,
+                        #"repeat_penalty":1.24,
+                        #"min_p":0.05,
+                        #"top_p":0.95,
+                        #}
+        )
 
-    # Convert 'Allow delegation' and 'Verbose' to boolean
-    allow_delegation_bool = True if str(allow_delegation).lower() in ['true', '1', 't', 'y', 'yes'] else False
-    verbose_bool = True if str(verbose).lower() in ['true', '1', 't', 'y', 'yes'] else False
+    def get_agent_tools(tools_string):
+        tool_names = [tool.strip() for tool in tools_string.split(',')]
+        return [getattr(ToolsMapping, tool) for tool in tool_names if hasattr(ToolsMapping, tool)]
 
-    tools_names = [tool.strip() for tool in tools_string.split(',')]
-    tools = [getattr(ToolsMapping, tool) for tool in tools_names if hasattr(ToolsMapping, tool)]
-    
-    # Parse LLM configuration
-    model_name = row.get('Model Name', 'gpt-4-turbo-preview')
-    temperature = float(row.get('Temperature', 0.2))
-    base_url = row.get('Base URL', None)
+    agent_config = {
+        #agent_executor:                                            #An instance of the CrewAgentExecutor class.
+        'role'            : row['Agent Role'],
+        'goal'            : dedent(row['Goal']),
+        'backstory'       : dedent(row['Backstory']),
+        'allow_delegation': helpers.str_to_bool(row['Allow delegation']),   #Whether the agent is allowed to delegate tasks to other agents.
+        'verbose'         : helpers.str_to_bool(row['Verbose']),            #Whether the agent execution should be in verbose mode.
+        'tools'           : get_agent_tools(row['Tools']),          #Tools at agents disposal
+        'memory'          : True,                                   #TODO: Remove hardcoding #Whether the agent should have memory or not.
+        'max_iter'        : 2000,                                   #TODO: Remove hardcoding #Maximum number of iterations for an agent to execute a task.
+        'llm'             : llm,                                    #The language model that will run the agent.
+        'function_calling_llm': llm                                 #The language model that will the tool calling for this agent, it overrides the crew function_calling_llm.
+        #step_callback:                                             #Callback to be executed after each step of the agent execution.
+        #callbacks:                                                 #A list of callback functions from the langchain library that are triggered during the agent's execution process
+    }                                                               
 
-    llm_params = {'model_name': model_name, 'temperature': temperature}
-    
-    # Adjust the instantiation based on whether a base URL is provided
-    if base_url is not None and base_url == base_url:  # NaN is not equal to itself
-        llm_params['base_url'] = base_url
-    llm = ChatOpenAI(**llm_params)
-
-    return Agent(
-        role=role,
-        goal=dedent(goal),
-        backstory=dedent(backstory),
-        tools=tools,
-        allow_delegation=allow_delegation_bool,
-        verbose=verbose_bool,
-        llm=llm
-    )
-
-
+    return Agent(config = agent_config)
+        
+        
+def get_agent_by_role(agents, desired_role):
+    return next((agent for agent in agents if agent.role == desired_role), None)
+            
 def create_tasks_from_df(row, assignment, created_agents):
-    description = row['Instructions'].replace('{assignment}', assignment)
-    desired_role = row['Agent']
+    description     = row['Instructions'].replace('{assignment}', assignment)
+    desired_role    = row['Agent']
 
     return Task(
-        description=dedent(description),
-        expected_output=row['Expected Output'],
-        agent=get_agent_by_role(created_agents, desired_role)
+        description         = dedent(description),
+        expected_output     = row['Expected Output'],
+        agent               = get_agent_by_role(created_agents, desired_role)
     )
-
 
 def create_crew(created_agents, created_tasks):
-    print("\n============================= Engaging the crew =============================\n\n")
-
     return Crew(
-        agents=created_agents,
-        tasks=created_tasks,
-        verbose=True,
-        process=Process.sequential
+        agents  =created_agents,
+        tasks   =created_tasks,
+        verbose =True,              #TODO remove hardcoding
+        process =Process.sequential #TODO remove hardcoding
     )
 
-
 if __name__ == "__main__":
-    from dotenv import load_dotenv
-    import argparse
 
-    parser = argparse.ArgumentParser()
+    #Parse comman line arguments
+    parser  = argparse.ArgumentParser()
     parser.add_argument('--sheet_url', help='The URL of the google sheet')
-    args = parser.parse_args()
-
-    load_dotenv()
-    greetings_print()
+    args    = parser.parse_args()
+    
     if args.sheet_url:
         sheet_url=args.sheet_url
-    else:
+    else:                                       #if sheet_url not passed via command line
+        helpers.greetings_print()
         sheet_url = input("Please provide the URL of your google sheet:")
-    agents_df, tasks_df = parse_table(sheet_url)
-    after_read_sheet_print(agents_df, tasks_df)
-
-    print("Creating agents:\n")
+    
+    agents_df, tasks_df = Sheets.parse_table(sheet_url)
+    helpers.after_read_sheet_print(agents_df, tasks_df) #Print overview of agents and tasks
+    
+    print("\n============================= Creating agents: ============================\n")
     agents_df['crewAIAgent'] = agents_df.apply(create_agents_from_df, axis=1)
     created_agents = agents_df['crewAIAgent'].tolist()
 
     print("\n============================= Creating tasks: =============================\n")
     assignment = tasks_df['Assignment'][0]
     tasks_df['crewAITask'] = tasks_df.apply(lambda row: create_tasks_from_df(row, assignment, created_agents), axis=1)
-
     created_tasks = tasks_df['crewAITask'].tolist()
+    
+    print("\n============================= Creating crew: ==============================\n")
     crew = create_crew(created_agents, created_tasks)
     results = crew.kickoff()
 
     # Print results
-    print("\n\n ============================= Here is the result =============================\n\n")
-    print(assignment)
+    print("\n\n ========================== Here is the result ===========================\n")
+    print(results)
+
+    
+ 
+       
+        #Agent LLM fields
+        #model_name     = row.get('Model Name', 'gpt-4-turbo-preview') #Selection of model for OpenAI. Or HuggingFace Model name for caching (via llamacpp)
+        #temperature    = float(row.get('Temperature', 0.0))
+        #base_url       = row.get('Base URL', None)                    #For "local" OpenAI compatible LLM  
+        #chat_format    = "vicuna"                                     # or "llama-2", vicuna,  etc.., for llama-cpp-python //TODO remove hardcoding. 
+        #llm_params = {'model_name': model_name, 'temperature': temperature}
+        #Adjust the instantiation based on whether a base URL is provided
+        #if base_url is not None and base_url == base_url:  # if base_url is not NaN...
+        #       llm_params['base_url'] = base_url
+        #       max_tokens = 2048 #//TODO Remove hardcoding
+        #llm_params['max_tokens'] = max_tokens
+        
+    #Function calling LLM fields
+    #FOR LLAMACPP CONFIG
+    #llm = LlamaCpp(
+    #   #model_path="./../llama.cpp/models/Hermes-2-Pro-Mistral-7B-GGUF/Hermes-2-Pro-Mistral-7B.Q8_0.gguf",
+    #   #model_path="./../../../.cache/lm-studio/models/mradermacher/Nous-Capybara-limarpv3-34B-i1-GGUF/Nous-Capybara-limarpv3-34B.i1-Q4_K_M.gguf",
+    #   callback_manager    = callback_manager,
+    #   verbose             = True,  # Verbose is required to pass to the callback manager
+    #   streaming           = True, 
+    #   n_gpu_layers        = -1,
+    #   n_threads           = 4,
+    #   f16_kv              = True,  # MUST set to True, otherwise you will run into problem after a couple of calls
+    #   n_ctx               = 36000, #defined by model
+    #   n_batch             = 2048,
+    #   max_new_tokens      = 512,
+    #   max_length          = 4096,
+    #   last_n_tokens_size  = 1024,
+    #   temperature         = 0.0, 
+    #   chat_template       = "[INST] <<SYS>>\n{system}\n<</SYS>>\n\n{instruction} [/INST]",
+    #                         #{System}\nUSER: {user}\nASSISTANT: {response}</s>",
+    #   chat_format         = "llama-2",
+    #   max_tokens          = 256, 
+    #   top_p               = 0.5,
+    #   top_k               = 10,
+    #   use_mlock           = True,
+    #   repeat_penalty      = 1.5,
+    #   seed                = -1,
+    #   model_kwargs        = {"model_name":"01-ai/Yi-34B", "offload_kqv":True, "min_p":0.05},
+    #   stop                = ["\nObservation"],     
+    # )
