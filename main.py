@@ -1,45 +1,49 @@
-import os
+import  os
+import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from    utils.helpers   import load_env
 os.environ['ANONYMIZED_TELEMETRY']  = 'False'                       # Disable interpreter telemetry
 os.environ['EC_TELEMETRY']          = 'False'                       # Disable embedchain telemetry
+load_env("../../ENV/.env", ["OPENAI_API_KEY",])                     # Load API keys from ENV
 
-#crewai
 from textwrap           import dedent
 from crewai             import Crew, Task, Agent, Process
-from langchain_openai   import ChatOpenAI  # for loading a local LLM
+
+# LLMs
+#from langchain_community.llms import OpenAI
+from langchain_community.llms import Ollama
+from langchain_community.llms import LlamaCpp
+from langchain_openai import ChatOpenAI
+from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
+from utils.helpers   import get_llm
+
+#crewai-sheets-ui
 from tools.tools        import ToolsMapping
 from utils              import Sheets
 from utils              import helpers
 
-#llamacpp
-from langchain_community.llms import LlamaCpp
-from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
+
 import  argparse
-#Load API keys from ENV
-from    dotenv  import load_dotenv
-load_dotenv()
+import signal
+import sys
+
+# Define a function to handle termination signals
+def signal_handler(sig, frame):
+    print("\n\nReceived termination signal. Shutting down gracefully...\n\n")
+    # Perform cleanup actions here
+    # Close connections, release resources, etc.
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 def create_agents_from_df(row):
-    #LLM(s) for the agent
-        #TODO def agent_llm_from_config
-        #TODO def function_calling_llm_from_config
-    callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])  # Callbacks support token-wise streaming
-    llm=ChatOpenAI(
-        callback_manager= callback_manager,
-        base_url       = "http://localhost:1234/v1",
-        api_key        = "lm-studio",
-        model_name     = "gpt-4-turbo-preview",
-        temperature    = 0.8,
-        max_tokens     = -1,
-        streaming      = True,
-        verbose        = True, #Not available in OpenAI: n_predict = -1, top_k = 40, repeat_penalty= 1.1, min_p= 0.05
-        #model_kwargs={
-                        #"n_predict":-1,
-                        #"top_k":40,
-                        #"repeat_penalty":1.24,
-                        #"min_p":0.05,
-                        #"top_p":0.95,
-                        #}
-        )
+    #Prepare LLM(s) for the agent
+    model_name  = row.get('Model Name', 'gpt-4-turbo-preview').strip()
+    temperature = float(row.get('Temperature', 0.7))
+    
+    llm = get_llm(model_name, temperature)                      #autoselect module for runing llm based on name
+                                                                #TODO def function_calling_llm_from_config
+   
 
     def get_agent_tools(tools_string):
         tool_names = [tool.strip() for tool in tools_string.split(',')]
@@ -119,8 +123,31 @@ if __name__ == "__main__":
     print(results)
 
     
+
+ # #llm =ChatOpenAI(    
+    #     #base_url       = "http://localhost:1234/v1",
+    #     #api_key        = "lm-studio",
+    #     #callback_manager= callback_manager,
+    #     #max_tokens     = -1,
+    #     #streaming      = True,
+    #     #verbose        = True, 
+    #     #Not available in OpenAI: n_predict = -1, top_k = 40, repeat_penalty= 1.1, min_p= 0.05
+    #     model_name     = "gpt-4-turbo-preview",
+    #     temperature    = 0.9,
+    #     #model_kwargs={
+    #                     #"n_predict":-1,
+    #                     #"top_k":40,
+    #                     #"repeat_penalty":1.24,
+    #                     #"min_p":0.05,
+    #                     #"top_p":0.95,
+    #                     #}
+    #     )
+
+
+
  
-       
+       #callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])  # Callbacks support token-wise streaming
+
         #Agent LLM fields
         #model_name     = row.get('Model Name', 'gpt-4-turbo-preview') #Selection of model for OpenAI. Or HuggingFace Model name for caching (via llamacpp)
         #temperature    = float(row.get('Temperature', 0.0))

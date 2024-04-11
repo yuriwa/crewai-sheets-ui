@@ -11,11 +11,11 @@ from langchain.agents.load_tools import load_tools
 from langchain_community.tools.ddg_search.tool \
     import DuckDuckGoSearchResults  
 
-from tools  import FileTool  
-from tools  import FolderTool
-from tools  import CLITool  # Interpreter wrapper. Execure any command on the computer
-from dotenv import load_dotenv
-load_dotenv()
+from tools          import FileTool  
+from tools          import FolderTool
+from tools          import CLITool  # Interpreter wrapper. Execure any command on the computer
+from utils.helpers  import load_env
+#load_env("../../ENV/.env", ["OPENAI_API_KEY",])
 
 #Default config for crewai tools
 #TODO remove llm hardcoding
@@ -54,7 +54,7 @@ class ToolsMapping:
     mdx_search_tool                 = MDXSearchTool()       # A RAG tool tailored for searching within Markdown (MDX) files, useful for documentation.
     pdf_search_tool                 = PDFSearchTool()       # A RAG tool aimed at searching within PDF documents, ideal for processing scanned documents.
     #pg_search_tool= PGSearchTool() #pg_search_tool,        #A RAG tool optimized for searching within PostgreSQL databases, suitable for database queries.
-    rag_tool                        = RagTool(config=config)        # A general-purpose RAG tool capable of handling various data sources and types.
+    #rag_tool                        = RagTool(config=config)        # A general-purpose RAG tool capable of handling various data sources and types.
     scrape_element_from_website_tool= ScrapeElementFromWebsiteTool()# Enables scraping specific elements from websites, useful for targeted data extraction.
     scrape_website_tool             = ScrapeWebsiteTool()           # Facilitates scraping entire websites, ideal for comprehensive data collection.
     website_searc_tool              = WebsiteSearchTool()           # A RAG tool for searching website content, optimized for web data extraction.
