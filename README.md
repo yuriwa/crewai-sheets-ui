@@ -13,10 +13,19 @@ To get started with the project, follow these steps:
    ```
    cd crewai-sheets-ui
    ```
-3. Install the required dependencies:
+3. Install the required dependencies
+3.1. use pip:
    ```
    pip install -r requirements.txt
    ```
+3.2. install use poetry:
+- ```
+  pip install poetry
+  ```
+-   ```
+    poetry install
+    ```
+
 4. Create and configure an `.env` file in the project's root directory for storing API keys and other environment variables:
    - Rename `example.env`:
      ```
