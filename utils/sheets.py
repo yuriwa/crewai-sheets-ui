@@ -9,7 +9,7 @@ class Sheets:
 
         # Define the worksheets and their respective columns to be read
         worksheets = {
-            'Agents': ['Team Name', 'Agent Role', 'Goal', 'Backstory', 'Tools', 'Allow delegation', 'Verbose', 'Model Name', 'Temperature', 'Base URL'],
+            'Agents': ['Team Name', 'Agent Role', 'Goal', 'Backstory', 'Tools', 'Allow delegation', 'Verbose', 'Model Name', 'Temperature', 'Base URL', 'Context size'],
             'Tasks': ['Task Name', 'Agent', 'Instructions', 'Expected Output', 'Assignment']
         }
 
