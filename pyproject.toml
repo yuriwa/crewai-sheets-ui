@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "crewai-sheets-ui"
+version = "0.0.2"
+description = "Version 0.0.2 of crewai-sheets-ui"
+authors = ["yuriwa"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+crewai = "^0.28.8"
+crewai-tools = {extras = ["tools"], version = "^0.1.7"}
+open-interpreter = "^0.2.4"
+duckduckgo-search = "^5.3.0"
+pandas = "^2.2.2"
+ollama = "^0.1.8"
+langchain-community = "^0.0.32"
+rich = "^13.7.1"
+langchain-anthropic = "^0.1.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
