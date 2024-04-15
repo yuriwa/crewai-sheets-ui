@@ -34,7 +34,8 @@ CMD if [ -z "$OPENAI_API_KEY" ]; then \
       python /home/user/root/crewai-sheets-ui/main.py && \
       echo "All set."; \
     fi
-
+#TODO mkfir /home/user/root/savefiles
+#TODO nginx -c /home/user/root/savefiles/config
 
 # Run the Docker container, mapping local port 1234 to container port 1234 and the current directory to /home/user in the container
 #docker run -it -p 1234:1234 -v /{local/savefile/path}}:/home/user/root/savefiles -e OPENAI_API_KEY='sk-111111111111111111' -e SERPER_API_KEY='1111111111' crewai-image python main.py

@@ -1,36 +1,79 @@
 # crewai-sheets-ui Project
 
 ## Overview
-The crewai-sheets-ui project is designed to automate the process of reading data from a Google Sheet, creating agents and tasks based on that data, and executing those tasks. This project utilizes a combination of external libraries and custom tools to manage and execute tasks efficiently.
+The `crewai-sheets-ui` project automates the process of integrating Google Sheets data to dynamically create and execute tasks and agents. This system leverages a mix of external libraries and proprietary tools to efficiently handle task management and execution.
 
 ## Setup
-1. Clone the repository. `git clone https://github.com/yuriwa/crewai-sheets-ui.git`
-2. Install the required dependencies by running `pip install -r requirements.txt`.
-3. Set up a an .env file in the root directory with your API keys and other environment variables:
-    - edit `example.env` and then
-    - `mv example.env .env`
-
+To get started with the project, follow these steps:
+1. Clone the repository:
+   ```
+   git clone https://github.com/yuriwa/crewai-sheets-ui.git
+   ```
+2. Navigate to the project directory:
+   ```
+   cd crewai-sheets-ui
+   ```
+3. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+4. Create and configure an `.env` file in the project's root directory for storing API keys and other environment variables:
+   - Rename `example.env`:
+     ```
+     mv example.env .env
+     ```
+   - Edit `.env` with your specific configurations.
+5. Start the application:
+   ```
+   python ./main.py
+   ```
 
 ## Usage
-To use the project, provide the URL of the Google Sheet when prompted. The script will read the data, create agents and tasks, and execute them accordingly.
+Launch the application and input the URL of your Google Sheet when prompted. The script will process the data to generate tasks and agents, which are then executed automatically.
+
+### Advanced Usage
+By default, the Agent and Crew memory features are enabled. To customize the memory settings, add the OpenAI API base URL and API key to the `.env` file or host your own model locally:
+- `.env` example:
+  ```
+  OPENAI_API_BASE='http://localhost:8080/v1' #host and port where you local embed model is running
+  OPENAI_MODEL_NAME='does-not-matter'
+  OPENAI_API_KEY='111111111111111111111'
+  ```
+- To run your own model server, use:
+  ```
+  ./server -m {embedding-modelname} -c 32768 --verbose --embedding
+  ```
 
 ## Dependencies
-- dotenv
-- langchain_openai
+A range of packages are utilized in this project:
 - crewai
-- crewai[tools]
+- crewai-tools
+- open-interpreter
+- duckduckgo-search
 - pandas
+- ollama
+- langchain_community
+- rich
 
-For a complete list of dependencies, refer to the `requirements.txt` file.
+Refer to the `requirements.txt` file for a complete list of dependencies.
 
 ## Usage with Docker
+Set up the project using Docker with these steps:
 1. Install Docker for your operating system.
-2. Downlaod the [Dockerfile](https://github.com/yuriwa/crewai-sheets-ui/blob/main/Dockerfile).
-3. From the same folder run:
-  `docker build --no-cache -t crewai-image . `
-4. Run the Docker container, mapping local port 1234 to container port 1234 and your savedfiles folder  to /home/user/root/savefiles in the container:
-  `docker run -it -p 1234:1234 -v ${savefile/path/on/your/computer}:/home/user/root/savefiles -e OPENAI_API_KEY='{YOUR_OPENAI_API KEY}' crewai-image`
-5. If you want to use a local LLM instead of OpenAI, host you LLM server on port 1234. You can use LM Studio or any other tool for this.
+2. Download the Dockerfile:
+   ```
+   wget https://github.com/yuriwa/crewai-sheets-ui/blob/main/Dockerfile
+   ```
+3. Build the Docker image:
+   ```
+   docker build --no-cache -t crewai-image .
+   ```
+4. Run the Docker container:
+   ```
+   docker run -it -p 1234:1234 -v ${savefile/path/on/your/computer}:/home/user/root/savefiles -e OPENAI_API_KEY='{YOUR_OPENAI_API_KEY}' crewai-image
+   ```
+
+If opting to use a local language model server instead of OpenAI, host your server using LM Studio, llama.cpp or a similar tool.
 
 ## Contributing
 Contributions to the crewai-sheets-ui project are welcome. Please ensure to follow the project's code of conduct and submit pull requests for any enhancements or bug fixes.
