@@ -40,7 +40,7 @@ def ollama_mod_and_load(model, num_ctx = None):
     updated_modelfile = modelfile.rstrip() + "\n" + 'PARAMETER stop ' + r"\nObservation"
     if num_ctx:
         # Remove any existing 'PARAMETER num_ctx' line from modelfile
-        updated_modelfile = '\n'.join(line for line in modelfile.split('\n') if not line.strip().startswith('PARAMETER num_ctx'))
+        updated_modelfile = '\n'.join(line for line in modelfile.split('\n') if not line.strip().startswith('PARAMETER num_ctx')) #remove line with PARAMETER...
         updated_modelfile = updated_modelfile + f"\nPARAMETER num_ctx {num_ctx}"
     
     logging.info(f"Creating new model '{crewai_model_name}' with updated stop parameter.")
