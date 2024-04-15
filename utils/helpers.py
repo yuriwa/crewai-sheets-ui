@@ -5,13 +5,15 @@ import logging
 import os
 from dotenv import load_dotenv
 from langchain_community.llms import Ollama
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, AzureOpenAI, AzureChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from ollama import pull, list
 from utils import ollama_mod_and_load
 
 # ASCII art and greetings print functions
 def greetings_print():
     console = Console()
+    console = Console(force_terminal=True, force_interactive=True)
     # ASCII art
     ascii_art = """
  ██████ ██████  ███████ ██     ██      █████  ██      ██████  ██    ██ ██ 
@@ -27,7 +29,7 @@ def greetings_print():
 # How to use this app
 
 Copy this sheet template and create your agents and tasks:
-[Google Sheets Template](https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE)
+[https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE](https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE)
 """
     # Print the greeting using Rich's Markdown support for nice formatting
     console.print(Markdown(greeting_message))
@@ -121,7 +123,27 @@ def get_llm(model_name, temperature=0.7, progress=None, llm_task=None, num_ctx =
     """
 
     # Define OpenAI models for direct use with the OpenAI API
-    openai_models = ["gpt-3.5-turbo", "gpt-4-turbo-preview"]
+    openai_models = ["gpt-3.5-turbo", "gpt-4-turbo-preview"]        #TODO: Take this list from sheet
+    azure_models=["gpt4-azure", "gpt-4-1106-azure", "gpt-35-turbo-instruct"]                                       #TODO: Take this list from sheet
+    anthropic_models=["claude-3-opus-20240229"]
+    
+    if model_name in anthropic_models:
+        # For recognized Anthripic models, return a LLM instance with specified temperature
+        logging.info(f"Using Anthropic model '{model_name}' with temperature {temperature}.")
+        return ChatAnthropic(
+            model_name=model_name,                            #use model_name as endpoint
+            #api_key=os.environ.get("AZURE_OPENAI_KEY"),
+            temperature=temperature)
+
+    if model_name in azure_models:
+        # Azure
+        logging.info(f"Using Azure model '{model_name}' with temperature {temperature}.")
+        return AzureChatOpenAI(
+            azure_deployment=model_name,                            #use model_name as endpoint
+            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+            api_key=os.environ.get("AZURE_OPENAI_KEY"),
+            api_version=os.environ.get("AZURE_OPENAI_VERSION"),
+            temperature=temperature)
 
     if model_name in openai_models:
         # For recognized OpenAI models, return a ChatOpenAI instance with specified temperature

@@ -14,7 +14,7 @@ from crewai             import Crew, Task, Agent, Process
 #from langchain_community.llms import OpenAI
 from langchain_community.llms import Ollama
 from langchain_community.llms import LlamaCpp
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
 from utils.helpers   import get_llm
 
@@ -91,7 +91,14 @@ def create_crew(created_agents, created_tasks):
         tasks   =created_tasks,
         verbose =True,               #TODO remove hardcoding
         process =Process.sequential, #TODO remove hardcoding
-        memory = True                #TODO remove hardcodingUSe 
+        memory = True,               #TODO remove hardcoding 
+        embedder={                   #TODO remove hardcoding  
+			"provider": "azure_openai",#TODO make this configurable
+			"config":{
+				"model": 'text-embedding-ada-002',#TODO make this configurable
+				"deployment_name": "text-embedding-ada-002",#TODO make this configurable and optional
+			}
+        }
     )
 
 
@@ -103,7 +110,7 @@ if __name__ == "__main__":
     args    = parser.parse_args()
     
     if args.sheet_url:
-        sheet_url=args.sheet_url
+        sheet_url = args.sheet_url
     else:
         helpers.greetings_print()                                          #shows google sheets template file.
         sheet_url = input("Please provide the URL of your google sheet:")
