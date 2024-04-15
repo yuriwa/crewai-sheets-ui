@@ -1,10 +1,11 @@
 import  os
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-from    utils.helpers   import load_env
+from   utils.helpers   import load_env
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 os.environ['ANONYMIZED_TELEMETRY']  = 'False'                       # Disable interpreter telemetry
 os.environ['EC_TELEMETRY']          = 'False'                       # Disable embedchain telemetry
-load_env("../../ENV/.env", ["OPENAI_API_KEY",])                     # Load API keys from ENV
+os.environ['HAYSTACK_TELEMETRY_ENABLED'] = "False"                  # Disable crewai telemetry
+load_env("../../ENV/.env", ["OPENAI_API_KEY",])                     # Load API keys from ENV #Gives nice error if listed ENV variables are not set
 
 from textwrap           import dedent
 from crewai             import Crew, Task, Agent, Process
@@ -21,7 +22,10 @@ from utils.helpers   import get_llm
 from tools.tools        import ToolsMapping
 from utils              import Sheets
 from utils              import helpers
-
+from rich.console       import Console
+from rich.progress      import Progress
+from rich.table         import Table
+from rich.console       import Console
 
 import  argparse
 import signal
@@ -36,14 +40,15 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
-def create_agents_from_df(row):
-    #Prepare LLM(s) for the agent
-    model_name  = row.get('Model Name', 'gpt-4-turbo-preview').strip()
+# Helper function to create agents
+def create_agents_from_df(row, progress, agent_task, llm_task):
+    model_name = row.get('Model Name', 'gpt-4-turbo-preview').strip()
     temperature = float(row.get('Temperature', 0.7))
-    
-    llm = get_llm(model_name, temperature)                      #autoselect module for runing llm based on name
-                                                                #TODO def function_calling_llm_from_config
-   
+    num_ctx = int(row.get('Context size', 2048))
+
+    llm = get_llm(model_name, temperature, progress, llm_task, num_ctx=num_ctx)
+    if llm is None:
+        raise ValueError(f"Failed to retrieve or initialize the language model for {model_name}")
 
     def get_agent_tools(tools_string):
         tool_names = [tool.strip() for tool in tools_string.split(',')]
@@ -64,9 +69,8 @@ def create_agents_from_df(row):
         #step_callback:                                             #Callback to be executed after each step of the agent execution.
         #callbacks:                                                 #A list of callback functions from the langchain library that are triggered during the agent's execution process
     }                                                               
-
-    return Agent(config = agent_config)
-        
+    progress.update(agent_task, advance=1)
+    return Agent(config = agent_config)      
         
 def get_agent_by_role(agents, desired_role):
     return next((agent for agent in agents if agent.role == desired_role), None)
@@ -85,9 +89,11 @@ def create_crew(created_agents, created_tasks):
     return Crew(
         agents  =created_agents,
         tasks   =created_tasks,
-        verbose =True,              #TODO remove hardcoding
-        process =Process.sequential #TODO remove hardcoding
+        verbose =True,               #TODO remove hardcoding
+        process =Process.sequential, #TODO remove hardcoding
+        memory = True                #TODO remove hardcodingUSe 
     )
+
 
 if __name__ == "__main__":
 
@@ -98,31 +104,55 @@ if __name__ == "__main__":
     
     if args.sheet_url:
         sheet_url=args.sheet_url
-    else:                                       #if sheet_url not passed via command line
-        helpers.greetings_print()
+    else:
+        helpers.greetings_print()                                          #shows google sheets template file.
         sheet_url = input("Please provide the URL of your google sheet:")
     
     agents_df, tasks_df = Sheets.parse_table(sheet_url)
-    helpers.after_read_sheet_print(agents_df, tasks_df) #Print overview of agents and tasks
+    helpers.after_read_sheet_print(agents_df, tasks_df)                     #Print overview of agents and tasks
     
-    print("\n============================= Creating agents: ============================\n")
-    agents_df['crewAIAgent'] = agents_df.apply(create_agents_from_df, axis=1)
-    created_agents = agents_df['crewAIAgent'].tolist()
+    console = Console()
+    progress = Progress(transient=True)
+   
 
-    print("\n============================= Creating tasks: =============================\n")
-    assignment = tasks_df['Assignment'][0]
-    tasks_df['crewAITask'] = tasks_df.apply(lambda row: create_tasks_from_df(row, assignment, created_agents), axis=1)
-    created_tasks = tasks_df['crewAITask'].tolist()
-    
-    print("\n============================= Creating crew: ==============================\n")
-    crew = create_crew(created_agents, created_tasks)
+    with Progress() as progress:
+        agent_task = progress.add_task("[cyan]Creating agents......", total=len(agents_df))   #Agent progress bar  
+        llm_task = progress.add_task("[cyan]  Pulling llm model...", total=100)  # 100 is a placeholder    
+        agents_df['crewAIAgent'] = agents_df.apply(lambda row: create_agents_from_df(row, progress=progress, agent_task=agent_task, llm_task=llm_task), axis=1)
+        created_agents = agents_df['crewAIAgent'].tolist()
+        
+        
+        task_task = progress.add_task("[cyan]Creating tasks...", total=1)                   #Task progress bar
+        assignment = tasks_df['Assignment'][0]
+        tasks_df['crewAITask'] = tasks_df.apply(lambda row: create_tasks_from_df(row, assignment, created_agents), axis=1)
+        created_tasks = tasks_df['crewAITask'].tolist()
+        progress.advance(task_task)
+        
+        # Creating crew
+        crew_task = progress.add_task("[cyan]Creating crew...", total=1)                    #Crew progress bar
+        crew = create_crew(created_agents, created_tasks)
+        progress.advance(crew_task)
+        
+        progress.stop
+        console.print("[green]Crew created successfully!")
+
     results = crew.kickoff()
 
-    # Print results
-    print("\n\n ========================== Here is the result ===========================\n")
-    print(results)
+    terminal_width = console.width
+
+   # Ensure the terminal width is at least 120 characters
+    terminal_width = max(terminal_width, 120)
+
+    # Create a table for results
+    result_table = Table(show_header=True, header_style="bold magenta")
+    result_table.add_column("Here are the results", style="green", width=terminal_width)
 
     
+    result_table.add_row(str(results))
+
+    console.print(result_table)
+    console.print("[bold green]\n\n")
+
 
  # #llm =ChatOpenAI(    
     #     #base_url       = "http://localhost:1234/v1",
@@ -189,3 +219,17 @@ if __name__ == "__main__":
     #   model_kwargs        = {"model_name":"01-ai/Yi-34B", "offload_kqv":True, "min_p":0.05},
     #   stop                = ["\nObservation"],     
     # )
+        # print("\nCreating agents:.\n")
+    # agents_df['crewAIAgent'] = agents_df.apply(create_agents_from_df, axis=1)
+    # created_agents = agents_df['crewAIAgent'].tolist()
+
+    # print("Creating tasks:..\n")
+    # assignment = tasks_df['Assignment'][0]
+    # tasks_df['crewAITask'] = tasks_df.apply(lambda row: create_tasks_from_df(row, assignment, created_agents), axis=1)
+    # created_tasks = tasks_df['crewAITask'].tolist()
+    
+    # print("Creating crew:...\n")
+    # crew = create_crew(created_agents, created_tasks)
+    # results = crew.kickoff()
+
+    # Print results
