@@ -14,7 +14,9 @@ from langchain_community.tools.ddg_search.tool \
 from tools          import FileTool  
 from tools          import FolderTool
 from tools          import CLITool  # Interpreter wrapper. Execure any command on the computer
+from tools          import BSharpCodeTool
 from utils.helpers  import load_env
+from tools          import BSharpCodeTool
 #load_env("../../ENV/.env", ["OPENAI_API_KEY",])
 
 #Default config for crewai tools
@@ -67,7 +69,8 @@ class ToolsMapping:
     # crewai--sheets-ui 
     executor                        = CLITool.execute_cli_command   # executor_tool,  			#interpreter CLI command
     folder_tool                     = FolderTool.list_files         # Lists all files into > a file so context is not spammed. Recursive option. 
-    file_tool                       = FileTool.manage_file          # Manages files with various actions including reading, appending text, editing lines, creating files, counting lines, and retrieving specific lines. xx
+    file_tool                       = FileTool()        # Manages files with various actions including reading, appending text, editing lines, creating files, counting lines, and retrieving specific lines. xx
+    bs_code_tool                    = BSharpCodeTool()
 
 #TODO
 #   def tool_wrapper(tool_func, max_output_size):
