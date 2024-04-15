@@ -1,24 +1,92 @@
+from rich.markdown import Markdown
+from rich.console import Console
+from rich.table import Table
+import logging
+import os
+from dotenv import load_dotenv
+from langchain_community.llms import Ollama
+from langchain_openai import ChatOpenAI
+from ollama import pull, list
+from utils import ollama_mod_and_load
+
+# ASCII art and greetings print functions
 def greetings_print():
-    print("\n\n============================= Starting crewai-sheets-ui =============================\n")
-    print("Copy this sheet template and create your agents and tasks:\n")
-    print("https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE\n")
-    print("======================================================================================\n\n")
+    console = Console()
+    # ASCII art
+    ascii_art = """
+ ██████ ██████  ███████ ██     ██      █████  ██      ██████  ██    ██ ██ 
+██      ██   ██ ██      ██     ██     ██   ██ ██     ██       ██    ██ ██ 
+██      ██████  █████   ██  █  ██     ███████ ██     ██   ███ ██    ██ ██ 
+██      ██   ██ ██      ██ ███ ██     ██   ██ ██     ██    ██ ██    ██ ██ 
+ ██████ ██   ██ ███████  ███ ███      ██   ██ ██      ██████   ██████  ██ 
+                                                                                                                                                    
+"""
+    console.print(ascii_art)
+    # Create a markdown string for the greeting message
+    greeting_message = """
+# How to use this app
+
+Copy this sheet template and create your agents and tasks:
+[Google Sheets Template](https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE)
+"""
+    # Print the greeting using Rich's Markdown support for nice formatting
+    console.print(Markdown(greeting_message))
+    console.print("\n")
+
 
 def after_read_sheet_print(agents_df, tasks_df):
-    print("\n\n=======================================================================================\n")
-    print(f""""Found the following agents in the spreadsheet: \n {agents_df}""")
-    print(f""""\nFound the following tasks in the spreadsheet: \n {tasks_df}""")
-    print(f"\n=============================Welcome to the {agents_df['Team Name'][0]} Crew ================= \n\n")
-                                                                                                            
+    console = Console()
+    terminal_width = console.width  # Get the current width of the terminal
+
+    # Ensure the terminal width is at least 120 characters
+    terminal_width = max(terminal_width, 120)
+
+    # Calculate column widths based on terminal width
+    # Adjust these ratios as needed to better fit your data
+    agent_role_width = max(int(terminal_width * 0.1), 10)  # 20% of terminal width, at least 20 characters
+    goal_width = max(int(terminal_width * 0.3), 30)        # 40% of terminal width, at least 40 characters
+    backstory_width = max(int(terminal_width * 0.6), 60)   # 40% of terminal width, at least 40 characters
+
+    task_name_width = max(int(terminal_width * 0.1),10)   # 20% of terminal width, at least 20 characters
+    agent_width = max(int(terminal_width * 0.2), 20)       # 20% of terminal width, at least 20 characters
+    instructions_width = max(int(terminal_width * 0.7), 70) # 60% of terminal width, at least 60 characters
+
+    # Create a table for agents
+    agents_table = Table(show_header=True, header_style="bold magenta")
+    agents_table.add_column("Agent Role", style="dim", width=agent_role_width)
+    agents_table.add_column("Goal", width=goal_width)
+    agents_table.add_column("Backstory", width=backstory_width)
+
+    # Add rows to the agents table
+    for index, row in agents_df.iterrows():
+        agents_table.add_row()
+        agents_table.add_row(row['Agent Role'], row['Goal'], row['Backstory'])
+
+
+    # Create a table for tasks
+    tasks_table = Table(show_header=True, header_style="bold magenta")
+    tasks_table.add_column("Task Name", style="dim", width=task_name_width)
+    tasks_table.add_column("Agent", width=agent_width)
+    tasks_table.add_column("Instructions", width=instructions_width)
+
+    # Add rows to the tasks table
+    for index, row in tasks_df.iterrows():
+        tasks_table.add_row()
+        tasks_table.add_row(row['Task Name'], row['Agent'], row['Instructions'])
+
+    console.print("\nFound following agents and tasks in the google sheet:")
+    # Display the tables
+    console.print(agents_table)
+    console.print(tasks_table)
+
+# Helper function to convert strings to boolean
 def str_to_bool(value_str):
     if isinstance(value_str, bool):
         return value_str
     else:
         return value_str.lower() in ['true', '1', 't', 'y', 'yes']
 
-
-import os
-from dotenv import load_dotenv
+# Function to load environment variables
 def load_env(env_path, expected_vars=None):
     """
     Load environment variables from a .env file and verify expected variables with stylized print output.
@@ -40,40 +108,65 @@ def load_env(env_path, expected_vars=None):
         if missing_vars:
             print(f"\033[93mWarning: Missing expected environment variables: {', '.join(missing_vars)}\033[0m")
 
-
-
-
-import  logging
-import  subprocess
-from    langchain_community.llms import Ollama
-from    langchain_openai         import ChatOpenAI
-
-def get_llm(model_name, temperature=0.7):
+# Enhanced get_llm function with model checking in Ollama
+def get_llm(model_name, temperature=0.7, progress=None, llm_task=None, num_ctx = None):
     """
     Returns the appropriate LLM based on the model name and temperature.
-    
-    :param model_name: The name of the model to load.
+    Checks if the specific model or base model already exists in Ollama and does not attempt to pull if it does,
+    otherwise, it attempts to pull the model.
+
+    :param model_name: The name of the model to load, potentially including a version.
     :param temperature: The temperature setting for the model.
     :return: An instance of the LLM.
     """
+
     # Define OpenAI models for direct use with the OpenAI API
     openai_models = ["gpt-3.5-turbo", "gpt-4-turbo-preview"]
-    
+
     if model_name in openai_models:
         # For recognized OpenAI models, return a ChatOpenAI instance with specified temperature
         logging.info(f"Using OpenAI model '{model_name}' with temperature {temperature}.")
         return ChatOpenAI(model=model_name, temperature=temperature)
+    
+    # Check if model exists in Ollama list
+    existing_models = list()['models']
+    existing_model_names = [model['name'] for model in existing_models]
+
+    # Determine the lookup approach based on if a specific version is provided
+    if ':' in model_name:
+        # Specific version provided, check directly
+        if model_name in existing_model_names:
+            logging.info(f"Specific version '{model_name}' found in Ollama, loading directly.")
+            progress.update(llm_task, visible=False)                 
+            return ollama_mod_and_load(model=model_name, num_ctx=num_ctx)
     else:
-        # For other models, pull the model using Ollama and return an Ollama instance
-        logging.info(f"Attempting to pull the model '{model_name}' using Ollama. Please wait...")
-        command = ["ollama", "pull", model_name]
-        result = subprocess.run(command)
+        # No specific version provided, check for any version of the base model
+        base_model_name = model_name.split(':')[0]
+        # Find the first matching model that starts with the base_model_name
+        matching_model = next((model['name'] for model in existing_models if model['name'].startswith(base_model_name + ':')), None)
+        if matching_model:
+            logging.info(f"Base model for '{base_model_name}' exists in Ollama, loading directly: {matching_model}")
+            progress.update(llm_task, visible=False) 
+            return ollama_mod_and_load(model=matching_model, num_ctx=num_ctx)
         
-        if result.returncode == 0:
-            logging.info(f"Model '{model_name}' successfully pulled with Ollama.")
-            return Ollama(model=model_name)  # Note: Assuming Ollama's API allows setting temperature, adjust as necessary
-        else:
-            logging.error(f"\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\
-                            \nFailed to pull the model '{model_name}' with Ollama. Is Ollama service running?  \
-                            \n(hint: Ollama serve)\n\n ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯")
-            return None
+    # If model does not exist, attempt to pull it
+    logging.info(f"Model '{model_name}' not found in Ollama. Attempting to pull with streaming enabled.")
+    try:
+        for progress_update in pull(model_name, stream=True):
+            if 'total' in progress_update:
+                progress.update(llm_task, total=progress_update['total'])
+            
+            if 'completed' in progress_update:
+                current_completed = progress.tasks[llm_task].completed
+                new_advance = progress_update['completed'] - current_completed
+                progress.advance(llm_task, advance=new_advance)
+
+            if 'status' in progress_update:
+                progress.update(llm_task, advance=0, description=f"[cyan]{progress_update['status']}")
+                #progress.console.print(progress_update['status'], end='\r')
+        
+        logging.info(f"Model '{model_name}' successfully pulled and loaded.")
+        return ollama_mod_and_load(model=model_name, num_ctx=num_ctx)
+    except Exception as e:
+        logging.error(f"Failed to pull the model '{model_name}' with Ollama. Error: {str(e)}")
+        return None
