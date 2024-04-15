@@ -1,11 +1,11 @@
 import  os
 import logging
-from   utils.helpers   import load_env
+from dotenv import load_dotenv
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 os.environ['ANONYMIZED_TELEMETRY']  = 'False'                       # Disable interpreter telemetry
 os.environ['EC_TELEMETRY']          = 'False'                       # Disable embedchain telemetry
 os.environ['HAYSTACK_TELEMETRY_ENABLED'] = "False"                  # Disable crewai telemetry
-load_env("../../ENV/.env", ["OPENAI_API_KEY",])                     # Load API keys from ENV #Gives nice error if listed ENV variables are not set
+                   # Load API keys from ENV #Gives nice error if listed ENV variables are not set
 
 from textwrap           import dedent
 from crewai             import Crew, Task, Agent, Process
@@ -107,14 +107,18 @@ if __name__ == "__main__":
     #Parse comman line arguments
     parser  = argparse.ArgumentParser()
     parser.add_argument('--sheet_url', help='The URL of the google sheet')
+    parser.add_argument('--env_path', default=".env", help='The path to the .env file')
+
     args    = parser.parse_args()
-    
+
     if args.sheet_url:
         sheet_url = args.sheet_url
     else:
         helpers.greetings_print()                                          #shows google sheets template file.
         sheet_url = input("Please provide the URL of your google sheet:")
-    
+
+    load_dotenv(args.env_path)
+
     agents_df, tasks_df = Sheets.parse_table(sheet_url)
     helpers.after_read_sheet_print(agents_df, tasks_df)                     #Print overview of agents and tasks
     
