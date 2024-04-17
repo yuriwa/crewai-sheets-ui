@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from langchain_community.llms import Ollama
 from langchain_openai import ChatOpenAI, AzureOpenAI, AzureChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from langchain_groq import ChatGroq
 from ollama import pull, list
 from utils import ollama_mod_and_load
 import numpy as np
@@ -163,7 +164,14 @@ def get_llm( model_name = None,
             model           = model_name, 
             temperature     = temperature,
             base_url        = base_url,
-            api_key         = os.environ.get("OPENAI_API_KEY")
+            )
+    #Groq
+    if provider.lower() == "groq":
+        logging.info(f"Using Groq model '{model_name}' with temperature {temperature}.")
+        return ChatGroq(
+            model           = model_name, 
+            temperature     = temperature,
+            #base_url        = base_url,
             )
     
     #Ollama - Don't check providor, yet
