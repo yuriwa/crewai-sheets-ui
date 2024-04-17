@@ -17,7 +17,7 @@ class FileToolSchema(FixedFileToolSchema):
     """Input for FileTool."""
     file_path: str = Field(..., description="The path to the file.")
     action: str = Field(..., description="The action to perform on the file.")
-    line_number: int = Field(None, description="The line number to start reading from.")
+    line_number: int = Field(None, description="The line number to start reading from. Line numbers are 1-based.")
     num_lines: Optional[int] = Field(None, description="The number of lines to read starting from line_number.")
     expected_text: str = Field(None, description="The text expected to be on the specified line for editing.")
     new_text: str = Field(None, description="The new text to replace the existing text on the specified line.")
@@ -81,6 +81,7 @@ Supported Actions:
         - file_path: Path to the file.
         - line_number: The starting line number from where to begin reading.
         - num_lines: The number of lines to read from the starting line. If not specified, reads all lines starting from `line_number`.
+    Line numbers are 1-based, meaning the first line is line 1.
     """
         if file_path is not None:
             self.file_path = file_path
@@ -89,24 +90,29 @@ Supported Actions:
         
 
     def _run(self, **kwargs: Any) -> Any:
-        self.args_schema = FixedFileToolSchema
-        action = kwargs.get('action', '').lower()  # Convert action to lowercase, default to empty string if None
-        if action == 'append':
-            return self._append_text(**kwargs)
-        elif action == 'edit':
-            return self._edit_line(**kwargs)
-        elif action == 'create':
-            return self._create_file(**kwargs)
-        elif action == 'count_lines':
-            return self._count_lines(**kwargs)
-        elif action == 'get_line':
-            return self._get_line(**kwargs)
-        elif action == 'read':
-            return self._read_file(**kwargs)
-        else:
-            self.description = f"Invalid action '{action}'. Valid actions are: append, edit, create, count_lines, get_line, read."
-            self._generate_description()
-            return self.description
+        try:
+            self.args_schema = FixedFileToolSchema
+            action = kwargs.get('action', '').lower()  # Convert action to lowercase, default to empty string if None
+            if action == 'append':
+                return self._append_text(**kwargs)
+            elif action == 'edit':
+                return self._edit_line(**kwargs)
+            elif action == 'create':
+                return self._create_file(**kwargs)
+            elif action == 'count_lines':
+                return self._count_lines(**kwargs)
+            elif action == 'get_line':
+                return self._get_line(**kwargs)
+            elif action == 'read':
+                return self._read_file(**kwargs)
+            else:
+                self.description = f"Invalid action '{action}'. Valid actions are: append, edit, create, count_lines, get_line, read."
+                self._generate_description()
+                return self.description
+        except Exception as e:
+            error_message = f"Error processing action '{kwargs.get('action', 'unknown')}'. Exception type: {type(e).__name__}, Exception info: {e}, Object state: {self.__dict__}"
+            # Optionally log or handle the error message further
+            return error_message
         	
         
     def _append_text(self, file_path, append_text=None, **kwargs):
@@ -121,7 +127,7 @@ Supported Actions:
         """Edits a specific line in the file if the expected text matches."""
         lines = self._read_file_lines(file_path)
         if not 1 <= line_number <= len(lines):
-            return f"Error: Line number {line_number} is out of the file's range."
+            return f"Error: Line number {line_number} is out of the file's range. The file has {len(lines)} lines. The first line is line 1."
         # Check if the expected text matches the current line content
         current_line = lines[line_number - 1].rstrip("\n")
         if expected_text is not None and current_line != expected_text:
