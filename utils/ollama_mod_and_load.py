@@ -33,16 +33,20 @@ def ollama_mod_and_load(model, num_ctx = None):
     modelfile = model_details['modelfile']
 
     # Check if the PARAMETER stop "\nObservation" and num_ctx exists with the right context size
-    if r'\\nObservation' in modelfile and f"PARAMETER num_ctx {num_ctx} in modelfile": 
+    if r'\\nObservation' in modelfile and (num_ctx is None or f"PARAMETER num_ctx {num_ctx}" in modelfile):
         logging.info(f"Parameter stop '\\nObservation' exists in '{model_name}', loading model.")
         return Ollama(model=model_name)
     
-    updated_modelfile = modelfile.rstrip() + "\n" + 'PARAMETER stop ' + r"\nObservation"
-    if num_ctx:
+    # If num_ctx is not None, adjust the modelfile accordingly
+    if num_ctx is not None:
+        updated_modelfile = modelfile.rstrip() + "\n" + 'PARAMETER stop ' + r"\nObservation"
+        
         # Remove any existing 'PARAMETER num_ctx' line from modelfile
         updated_modelfile = '\n'.join(line for line in modelfile.split('\n') if not line.strip().startswith('PARAMETER num_ctx')) #remove line with PARAMETER...
-        updated_modelfile = updated_modelfile + f"\nPARAMETER num_ctx {num_ctx}"
-    
+        updated_modelfile += f"\nPARAMETER num_ctx {num_ctx}"
+    else:
+        updated_modelfile = modelfile.rstrip() + "\n" + 'PARAMETER stop ' + r"\nObservation"
+
     logging.info(f"Creating new model '{crewai_model_name}' with updated stop parameter.")
     for response in create(model=crewai_model_name, modelfile=updated_modelfile, stream=True):
         print(response['status']) 

@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI, AzureOpenAI, AzureChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from ollama import pull, list
 from utils import ollama_mod_and_load
+import numpy as np
 
 # ASCII art and greetings print functions
 def greetings_print():
@@ -83,7 +84,7 @@ def after_read_sheet_print(agents_df, tasks_df):
 
 # Helper function to convert strings to boolean
 def str_to_bool(value_str):
-    if isinstance(value_str, bool):
+    if isinstance(value_str, (bool, np.bool_)):
         return value_str
     else:
         return value_str.lower() in ['true', '1', 't', 'y', 'yes']
@@ -110,8 +111,15 @@ def load_env(env_path, expected_vars=None):
         if missing_vars:
             print(f"\033[93mWarning: Missing expected environment variables: {', '.join(missing_vars)}\033[0m")
 
-# Enhanced get_llm function with model checking in Ollama
-def get_llm(model_name, temperature=0.7, progress=None, llm_task=None, num_ctx = None):
+# Enhanced get_llm function with checking provider and model pulling in Ollama
+def get_llm( model_name = None, 
+            temperature = 0.7, 
+            num_ctx     = None, 
+            provider    = None, 
+            base_url    = None, 
+            deployment  = None,
+            progress    = None, 
+            llm_task    = None ):
     """
     Returns the appropriate LLM based on the model name and temperature.
     Checks if the specific model or base model already exists in Ollama and does not attempt to pull if it does,
@@ -123,72 +131,100 @@ def get_llm(model_name, temperature=0.7, progress=None, llm_task=None, num_ctx =
     """
 
     # Define OpenAI models for direct use with the OpenAI API
-    openai_models = ["gpt-3.5-turbo", "gpt-4-turbo-preview"]        #TODO: Take this list from sheet
-    azure_models=["gpt4-azure", "gpt-4-1106-azure", "gpt-35-turbo-instruct"]                                       #TODO: Take this list from sheet
-    anthropic_models=["claude-3-opus-20240229"]
+    # openai_models = ["gpt-3.5-turbo", "gpt-4-turbo-preview"]        #TODO: Take this list from sheet
+    #azure_models=["gpt4-azure", "gpt-4-1106-azure", "gpt-35-turbo-instruct"]                                       #TODO: Take this list from sheet
+    #anthropic_models=["claude-3-opus-20240229"]
     
-    if model_name in anthropic_models:
-        # For recognized Anthripic models, return a LLM instance with specified temperature
+    #Anthropic
+    if provider.lower() == "anthropic":
         logging.info(f"Using Anthropic model '{model_name}' with temperature {temperature}.")
         return ChatAnthropic(
-            model_name=model_name,                            #use model_name as endpoint
-            #api_key=os.environ.get("AZURE_OPENAI_KEY"),
-            temperature=temperature)
-
-    if model_name in azure_models:
-        # Azure
+            model_name  = model_name,                            #use model_name as endpoint
+            api_key     = os.environ.get("ANTHROPIC_API_KEY"),
+            temperature = temperature,
+            #stop = ["\nObservation"] 
+            )
+    
+    #Azure OpenaI   
+    if provider.lower() == "azure_openai":
         logging.info(f"Using Azure model '{model_name}' with temperature {temperature}.")
         return AzureChatOpenAI(
-            azure_deployment=model_name,                            #use model_name as endpoint
-            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-            api_key=os.environ.get("AZURE_OPENAI_KEY"),
+            azure_deployment = deployment,                            
+            azure_endpoint   = base_url,                              #os.environ.get("AZURE_OPENAI_ENDPOINT"),
+            api_key          = os.environ.get("AZURE_OPENAI_KEY"),
             api_version=os.environ.get("AZURE_OPENAI_VERSION"),
-            temperature=temperature)
+            temperature=temperature
+            )
 
-    if model_name in openai_models:
-        # For recognized OpenAI models, return a ChatOpenAI instance with specified temperature
+    #OpenAI
+    if provider.lower() == "openai":
         logging.info(f"Using OpenAI model '{model_name}' with temperature {temperature}.")
-        return ChatOpenAI(model=model_name, temperature=temperature)
+        return ChatOpenAI(
+            model           = model_name, 
+            temperature     = temperature,
+            base_url        = base_url,
+            api_key         = os.environ.get("OPENAI_API_KEY")
+            )
     
-    # Check if model exists in Ollama list
-    existing_models = list()['models']
-    existing_model_names = [model['name'] for model in existing_models]
+    #Ollama - Don't check providor, yet
+ 
 
-    # Determine the lookup approach based on if a specific version is provided
-    if ':' in model_name:
-        # Specific version provided, check directly
-        if model_name in existing_model_names:
-            logging.info(f"Specific version '{model_name}' found in Ollama, loading directly.")
-            progress.update(llm_task, visible=False)                 
-            return ollama_mod_and_load(model=model_name, num_ctx=num_ctx)
-    else:
-        # No specific version provided, check for any version of the base model
-        base_model_name = model_name.split(':')[0]
-        # Find the first matching model that starts with the base_model_name
-        matching_model = next((model['name'] for model in existing_models if model['name'].startswith(base_model_name + ':')), None)
-        if matching_model:
-            logging.info(f"Base model for '{base_model_name}' exists in Ollama, loading directly: {matching_model}")
-            progress.update(llm_task, visible=False) 
-            return ollama_mod_and_load(model=matching_model, num_ctx=num_ctx)
-        
-    # If model does not exist, attempt to pull it
-    logging.info(f"Model '{model_name}' not found in Ollama. Attempting to pull with streaming enabled.")
-    try:
-        for progress_update in pull(model_name, stream=True):
-            if 'total' in progress_update:
-                progress.update(llm_task, total=progress_update['total'])
-            
-            if 'completed' in progress_update:
-                current_completed = progress.tasks[llm_task].completed
-                new_advance = progress_update['completed'] - current_completed
-                progress.advance(llm_task, advance=new_advance)
-
-            if 'status' in progress_update:
-                progress.update(llm_task, advance=0, description=f"[cyan]{progress_update['status']}")
-                #progress.console.print(progress_update['status'], end='\r')
-        
-        logging.info(f"Model '{model_name}' successfully pulled and loaded.")
-        return ollama_mod_and_load(model=model_name, num_ctx=num_ctx)
-    except Exception as e:
-        logging.error(f"Failed to pull the model '{model_name}' with Ollama. Error: {str(e)}")
+    def find_matching_model(model_name, existing_models):
+        """
+        Finds a matching model from the list of existing models.
+        Supports both exact matches and base model matches when a version is not specified.
+        """
+        # Handle model names that include specific versions
+        if ':' in model_name:
+            for model in existing_models:
+                if model['name'] == model_name:
+                    logging.info(f"Specific version '{model_name}' found in Ollama, loading directly.")
+                    return model
+        else:
+            # Handle base model names without specific versions
+            base_model_name = model_name.split(':')[0]
+            for model in existing_models:
+                if model['name'].startswith(base_model_name + ':'):
+                    logging.info(f"Base model for '{base_model_name}' exists in Ollama, loading: {model['name']}")
+                    return model
         return None
+
+    def pull_and_load_model(model_name, progress, llm_task):
+        """
+        Attempts to pull a model and handle progress updates.
+        """
+        try:
+            for progress_update in pull(model_name, stream=True):
+                handle_progress_updates(progress_update, progress, llm_task)
+            
+            logging.info(f"Model '{model_name}' successfully pulled and loaded.")
+            return ollama_mod_and_load(model=model_name)
+        except Exception as e:
+            logging.error(f"Failed to pull the model '{model_name}' with Ollama. Error: {str(e)}")
+            return None
+
+    def handle_progress_updates(progress_update, progress, llm_task):
+        """
+        Handles progress updates during model download and initialization.
+        """
+        if 'total' in progress_update:
+            progress.update(llm_task, total=progress_update['total'])
+        if 'completed' in progress_update:
+            current_completed = progress.tasks[llm_task].completed
+            new_advance = progress_update['completed'] - current_completed
+            progress.advance(llm_task, advance=new_advance)
+        if 'status' in progress_update:
+            progress.update(llm_task, advance=0, description=f"[cyan]{progress_update['status']}")
+
+
+    """
+    Retrieves a language model by name, handling version specifics and streaming updates.
+    """
+    existing_models = list()['models']
+    matching_model = find_matching_model(model_name, existing_models)
+    if matching_model:
+        return ollama_mod_and_load(model = matching_model['name'], num_ctx = num_ctx)
+    
+    logging.info(f"Model '{model_name}' not found in Ollama. Attempting to pull with streaming enabled.")
+    return pull_and_load_model(model_name, progress, llm_task)
+

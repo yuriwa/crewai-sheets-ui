@@ -9,8 +9,10 @@ class Sheets:
 
         # Define the worksheets and their respective columns to be read
         worksheets = {
-            'Agents': ['Team Name', 'Agent Role', 'Goal', 'Backstory', 'Tools', 'Allow delegation', 'Verbose', 'Model Name', 'Temperature', 'Base URL', 'Context size'],
-            'Tasks': ['Task Name', 'Agent', 'Instructions', 'Expected Output', 'Assignment']
+            'Agents': ['Agent Role', 'Goal', 'Backstory', 'Tools', 'Allow delegation', 'Verbose', 'Memory', 'Max_iter','Model Name', 'Temperature', 'Function Calling Model'],
+            'Tasks' : ['Task Name', 'Agent', 'Instructions', 'Expected Output'],
+            'Crew'  : ['Team Name',	'Assignment','Verbose', 'Process', 'Memory', 'Embedding model'],
+            'Models': ['Model', 'Context size (local only)', 'Provider', 'base_url','Deployment']
         }
 
         # Iterate over the worksheets to read the required data
@@ -21,10 +23,19 @@ class Sheets:
             # Read the worksheet into a DataFrame, selecting only the specified columns
             try:
                 data = pd.read_csv(url, usecols=columns)
+                if worksheet == 'Agents':
+                    data['Function Calling Model'] = data['Function Calling Model'].replace("None", None)
+                if worksheet == 'Models':
+                    data['Context size (local only)'] = data['Context size (local only)'].replace(0, None)
+                    data['base_url'] = data['base_url'].replace("None", None)
+                    data['Deployment'] = data['Deployment'].replace("None", None)
+                if worksheet == "Crew":
+                    data['Embedding model'] = data['Embedding model'].replace("None", None)
             except ValueError as e:
                 # Handle cases where specified columns are not found in the sheet
-                print(f"Error reading worksheet '{worksheet}': {e}")
+                print(f"\nError reading worksheet '{worksheet}'. MAke sure all fields have a value: {e}")
                 continue
+
 
             # Append the DataFrame to the list of dataframes
             dataframes.append(data)
@@ -36,4 +47,6 @@ class Sheets:
         dataframes  = Sheets.read_google_sheet(url)
         Agents      = dataframes[0]
         Tasks       = dataframes[1]
-        return Agents, Tasks
+        Crew        = dataframes[2]
+        Models      = dataframes[3]
+        return Agents, Tasks, Crew, Models
