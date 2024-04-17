@@ -17,7 +17,7 @@ from tools          import CLITool  # Interpreter wrapper. Execure any command o
 from tools          import BSharpCodeTool
 from utils.helpers  import load_env
 from tools          import BSharpCodeTool
-#load_env("../../ENV/.env", ["OPENAI_API_KEY",])
+load_env("../../ENV/.env", ["OPENAI_API_KEY","OPENAI_BASE_URL"])
 
 #Default config for crewai tools
 #TODO remove llm hardcoding
@@ -34,7 +34,7 @@ config=dict(
     embedder=dict(
         provider="openai",
         config=dict(
-            model="text-embedding-3-large",
+            model="text-embedding-3-small",
             #task_type="retrieval_document",
             #title="Embeddings",
         ),
@@ -56,7 +56,7 @@ class ToolsMapping:
     mdx_search_tool                 = MDXSearchTool()       # A RAG tool tailored for searching within Markdown (MDX) files, useful for documentation.
     pdf_search_tool                 = PDFSearchTool()       # A RAG tool aimed at searching within PDF documents, ideal for processing scanned documents.
     #pg_search_tool= PGSearchTool() #pg_search_tool,        #A RAG tool optimized for searching within PostgreSQL databases, suitable for database queries.
-    #rag_tool                        = RagTool(config=config)        # A general-purpose RAG tool capable of handling various data sources and types.
+    rag_tool                        = RagTool(config=config)        # A general-purpose RAG tool capable of handling various data sources and types.
     scrape_element_from_website_tool= ScrapeElementFromWebsiteTool()# Enables scraping specific elements from websites, useful for targeted data extraction.
     scrape_website_tool             = ScrapeWebsiteTool()           # Facilitates scraping entire websites, ideal for comprehensive data collection.
     website_searc_tool              = WebsiteSearchTool()           # A RAG tool for searching website content, optimized for web data extraction.
