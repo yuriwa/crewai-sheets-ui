@@ -61,8 +61,8 @@ class BSharpCodeTool(BaseTool):
             return "Error: No code provided for highlighting."
 
         console = Console()
-        syntax = Syntax(code, lexer=BSharpLexer(), theme="monokai", line_numbers=True)
-        console.print(syntax)
+        syntax = Syntax(code, lexer=BSharpLexer(), theme="native", line_numbers=True)
+        console.print(f"\n{syntax}")
         return code
 
 # Example usage
