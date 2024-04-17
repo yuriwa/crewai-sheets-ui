@@ -50,7 +50,7 @@ class FileTool(BaseTool):
     def __init__(self, file_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.description = """
-Supported Operations:
+Supported Actions:
     - Append: Adds specified text to the end of the file.
       Parameters:
         - file_path: Path to the file.
