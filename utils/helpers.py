@@ -31,7 +31,7 @@ def greetings_print():
 # How to use this app
 
 Copy this sheet template and create your agents and tasks:
-[https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE](https://docs.google.com/spreadsheets/d/1a5MBMwL9YQ7VXAQMtZqZQSl7TimwHNDgMaQ2l8xDXPE)
+[https://docs.google.com/spreadsheets/d/1caB1PJ458XNL5BUjadECsHItDGGmhgdqLb4SwtIHmnw/edit#gid=932452232](https://docs.google.com/spreadsheets/d/1caB1PJ458XNL5BUjadECsHItDGGmhgdqLb4SwtIHmnw/edit#gid=932452232)
 """
     # Print the greeting using Rich's Markdown support for nice formatting
     console.print(Markdown(greeting_message))
