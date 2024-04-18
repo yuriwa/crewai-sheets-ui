@@ -52,9 +52,9 @@ class FileTool(BaseTool):
     file_path: Optional[str] = None
     
     def __init__(self, file_path: Optional[str] = None, **kwargs):
-        print("Entering FileTool constructor...")
-        print(f"file_path: {file_path}")
-        print(f"kwargs: {kwargs}")
+        # print("Entering FileTool constructor...")
+        # print(f"file_path: {file_path}")
+        # print(f"kwargs: {kwargs}")
         super().__init__(**kwargs)
         self.description = """
 Supported Operations:
