@@ -1,22 +1,25 @@
-# Use a base image with Python 3.10.13
-FROM python:3.10.13
+# Use a base image with Python 3.11.8
+FROM python:3.11.8
 
 # Install updated pip, setuptools, and wheel
 RUN pip install --upgrade pip setuptools wheel
 
 # Install crewai and its tools
-RUN pip install crewai && pip install 'crewai[tools]'
+RUN pip install poetry
 
 # Clone crewai-sheet-ui
 RUN git clone https://github.com/yuriwa/crewai-sheets-ui.git /home/user/root/crewai-sheets-ui
-
 # Set the working directory in the Docker image
 
-RUN pip install python-dotenv && pip install langchain_openai && pip install pandas && pip install open-interpreter && pip install --upgrade --quiet  duckduckgo-search
-#RUN pip install -r /home/user/root/crewai-sheets-ui/requirements.txt
+WORKDIR /home/user/root/crewai-sheets-ui
+# Configure poetry to not create a virtual environment and install dependencies
+RUN poetry config virtualenvs.create false && \
+    poetry install
+RUN pip install langchain_groq
 
+RUN mkdir /home/user/root/ENV
 # Create an .env file and add the exports
-RUN echo "export VAR1=value1\nexport VAR2=value2" > /home/user/root/crewai-sheets-ui/.env
+RUN echo "export VAR1=value1\nexport VAR2=value2" > /home/user/root/crewai-sheets-ui/../ENV/.env
 
 # Expose port 1234
 EXPOSE 1234
