@@ -150,43 +150,68 @@ def create_tasks_from_df(row, assignment, created_agents):
     )
 
 def create_crew(created_agents, created_tasks, crew_df):
+    #Embedding model (Memory)
+    memory = helpers.str_to_bool(crew_df['Memory'][0]) 
     embedding_model = crew_df['Embedding model'][0]
     deployment_name = models_df.loc[models_df['Model'] == embedding_model, 'Deployment'].values[0]
     provider = models_df.loc[models_df['Model'] == embedding_model, 'Provider'].values[0]
     base_url = models_df.loc[models_df['Model'] == embedding_model, 'base_url'].values[0]
-    verbose = helpers.str_to_bool(crew_df['Verbose'][0])
-    process = Process.hierarchical if crew_df['Process'][0] == 'hierarchical' else Process.sequential
-    memory = helpers.str_to_bool(crew_df['Memory'][0])
+
+    #Create provider specific congig and load proveder specific ENV variables if it can't be avoided    
+    embedder_config = {
+                       "model": embedding_model, 
+    }
     
-    config = {"model": embedding_model,}
-    
-    #Create provide specific congig and load proveder specific ENV variables if it can't be avoided
     if provider == 'azure-openai':
-        config['deployment_name'] = deployment_name             #Set azure specific config
+        embedder_config['deployment_name'] = deployment_name             #Set azure specific config
         #os.environ["AZURE_OPENAI_DEPLOYMENT"] = deployment_name #Wrokarond since azure 
         os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_KEY"]
 
     if provider == 'openai':
-        config['api_key'] = os.environ.get("OPENAI_API_KEY")
+        embedder_config['api_key'] = os.environ.get("OPENAI_API_KEY")
         os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+
     else: #Any other openai compatible e.g. ollama or llama-cpp				
         provider = 'openai'
         api_key = 'NA'
-        config['base_url'] = base_url
-        config['api_key'] = api_key                                          #Not needed for llama-cpp TODO:get from ENV for locl models
+        embedder_config['base_url'] = base_url
+        embedder_config['api_key'] = api_key
+    
+    #Groq doesn't have an embedder
+    
+    #Manager LLM
+    manager_model = crew_df['Manager LLM'][0] 
+    manager_provider = models_df.loc[models_df['Model'] == manager_model, 'Provider'].values[0]
+    manager_temperature = crew_df['t'][0]
+    manager_num_ctx = crew_df['num_ctx'][0]
+    manager_base_url = models_df.loc[models_df['Model'] == manager_model, 'base_url'].values[0]
+    manager_deployment = models_df.loc[models_df['Model'] == manager_model, 'Deployment'].values[0]
+    
+    if manager_model and manager_provider is not None:
+        manager_llm = get_llm(
+            model_name  = manager_model,
+            temperature = manager_temperature,  
+            num_ctx     = manager_num_ctx,
+            provider    = manager_provider,
+            base_url    = manager_base_url,
+            deployment  = manager_deployment
+        )                                 
 
+    verbose = helpers.str_to_bool(crew_df['Verbose'][0])
+    process = Process.hierarchical if crew_df['Process'][0] == 'hierarchical' else Process.sequential
+    
     return Crew(
         agents  = created_agents,
         tasks   = created_tasks,
         verbose = verbose,
         process = process,
-        memory  = memory,              
+        memory  = memory,
+        manager_llm = manager_llm,              
         embedder= {                   
-			"provider": provider, 
-			"config": config
+			"provider" : provider, 
+			"config"   : embedder_config
         }
     )
-
 
 if __name__ == "__main__":
 

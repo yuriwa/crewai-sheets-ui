@@ -11,7 +11,7 @@ class Sheets:
         worksheets = {
             'Agents': ['Agent Role', 'Goal', 'Backstory', 'Tools', 'Allow delegation', 'Verbose', 'Memory', 'Max_iter','Model Name', 'Temperature', 'Function Calling Model'],
             'Tasks' : ['Task Name', 'Agent', 'Instructions', 'Expected Output'],
-            'Crew'  : ['Team Name',	'Assignment','Verbose', 'Process', 'Memory', 'Embedding model'],
+            'Crew'  : ['Team Name',	'Assignment','Verbose', 'Process', 'Memory', 'Embedding model', 'Manager LLM', 't', 'num_ctx'],
             'Models': ['Model', 'Context size (local only)', 'Provider', 'base_url','Deployment']
         }
 
@@ -31,12 +31,15 @@ class Sheets:
                     data['Deployment'] = data['Deployment'].replace("None", None)
                 if worksheet == "Crew":
                     data['Embedding model'] = data['Embedding model'].replace("None", None)
+                    data['Manager LLM'] = data['Manager LLM'].replace("None", None)
+                    data['t'] = data['t'].replace(0, None)
+                    data['num_ctx'] = data['num_ctx'].replace(0, None)
             except ValueError as e:
                 # Handle cases where specified columns are not found in the sheet
-                print(f"\nError reading worksheet '{worksheet}'. MAke sure all fields have a value: {e}")
+                print(f"\nError reading worksheet '{worksheet}'. MAke sure all fields have a value. Use None or 0 if no value needed {e}")
                 continue
 
-
+            data = data.where(pd.notnull(data), None) # Replace NaN values with None
             # Append the DataFrame to the list of dataframes
             dataframes.append(data)
 
