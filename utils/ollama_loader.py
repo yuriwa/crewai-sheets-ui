@@ -22,7 +22,8 @@ class OllamaLoader:
         """
         Loads the specified model from Ollama, or pulls it if it does not exist.
         """
-        if model_name.split(':')[1] is None:
+        parts = model_name.split(':')
+        if len(parts) < 2 :
             print (f"Ollama models usually have a version, like {model_name}:instruct, or {model_name}:latest. That's ok, I'll take a guess and use the latest version.")
 
             
