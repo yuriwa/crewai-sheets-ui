@@ -4,9 +4,11 @@
 
 **Q: How do I ensure everything functions smoothly?**
 A: Great question! To keep our spreadsheets functioning smoothly, follow these simple habits:
+   - Do not insert rows. This breaks the formulas. You can achive the same by copying the botom rows then delete and paste special (values only) lower.
    - Only sort columns that are designated for sorting.
    - Similarly, only apply filters to designated filtering fields.
    - Always use the "Paste Special -> Paste Values Only" option when pasting data.
+   
    - Some parts of the sheet are protected to prevent accidental edits. If you see a warning, please heed it and do not override.
 
 **Q: Are there plans to develop a dedicated graphical user interface (GUI)?**
@@ -19,7 +21,7 @@ A: Since Google Sheets doesn't natively support multiple selections in dropdown 
 A: If you encounter confusing columns, a good rule of thumb is to copy values from the row above to maintain consistency. Still puzzled? We're here to help! Feel free to ask your question on our project page: [CrewAI Sheets UI GitHub](https://github.com/yuriwa/crewai-sheets-ui).
 
 **Q: How can I set the same Language Learning Model (LLM) across all configurations quickly?**
-A: To streamline your setup, go to the Models sheet and set your preferred model as the 'Default' in the Default field. This setting ensures that unless specified otherwise in advanced settings, all tools and functions will use the default model.
+A: To streamline your setup, go to the Models sheet and set your preferred model as 'TRUE' in the Default field. This setting ensures that unless specified otherwise in advanced settings, all tools and functions will use the default model.
 
 ### Advanced Questions
 
