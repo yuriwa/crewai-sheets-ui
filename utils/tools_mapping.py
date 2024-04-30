@@ -69,7 +69,8 @@ class ToolsMapping:
                     #     if 'embedder' in kwargs['config']:
                     #         if 'provider' in kwargs['config']['embedder']:
                     #             if kwargs['config']['embedder']['provider'] == "azure_openai":
-                    load_env("../../ENV/.env", ["OPENAI_API_KEY","OPENAI_BASE_URL"]) #TODO see if more processing is neede here. There is potentia; to change up env variables for each tool and stay in the
+                    #load_env("../../ENV/.env", ["OPENAI_API_KEY","OPENAI_BASE_URL"])
+                    #TODO see if more processing is neede here. There is potentia; to change up env variables for each tool and stay in the
                         #also print the config
                     #print(f"ToolsMapping about to add kwargs callable '{tool_name}': {kwargs['config']}")
                     self.tools[tool_name] = class_or_func(*args, **kwargs)

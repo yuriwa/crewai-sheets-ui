@@ -42,7 +42,7 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
     - 'huggingface': Uses 'model_name' and might use API token configurations internally.
     """
 
-    load_env("../../ENV/.env", ["OPENAI_API_KEY","OPENAI_BASE_URL"])
+    #load_env("../../ENV/.env", ["OPENAI_API_KEY","OPENAI_BASE_URL"])
 
     #Anthropic. 
     if provider.lower() == "anthropic":
