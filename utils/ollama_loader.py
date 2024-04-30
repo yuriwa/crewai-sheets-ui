@@ -1,10 +1,21 @@
+import   logging
+import   socket
 from     langchain_community.llms.ollama import Ollama
 from     rich.progress import Progress
 from     ollama import list, pull
-import   logging
 logger = logging.getLogger(__name__)
 
+
 class OllamaLoader:
+    def running_in_docker():
+        try:
+            # This will try to resolve the special Docker DNS name for the host.
+            host_ip = socket.gethostbyname('host.docker.internal')
+            return True if host_ip else False
+        except socket.gaierror:
+            # The name is not known, which likely means not running inside Docker
+            return False
+    
     def handle_progress_updates(progress_update, progress, llm_task):
         """
         Handles progress updates during model download and initialization.
@@ -22,6 +33,9 @@ class OllamaLoader:
         """
         Loads the specified model from Ollama, or pulls it if it does not exist.
         """
+        if base_url is None and OllamaLoader.running_in_docker():
+            base_url = 'http://host.docker.internal:11434'
+
         parts = model_name.split(':')
         if len(parts) < 2 :
             print (f"Ollama models usually have a version, like {model_name}:instruct, or {model_name}:latest. That's ok, I'll take a guess and use the latest version.")
@@ -31,7 +45,10 @@ class OllamaLoader:
         for model in model_list:
             if model['name'] == model_name:
                 logger.info(f"Model '{model_name}' found in Ollama, loading directly.")
-                return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx)
+                if base_url is not None:
+                    return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx, base_url=base_url)
+                else:
+                    return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx)
         
         logger.info(f"No local matching model found for '{model_name}' in Ollama.")
         print(f"I'm trying to download '{model_name}' from Ollama... This may take a while. Why not grab a cup of coffee...")
@@ -44,7 +61,10 @@ class OllamaLoader:
             
         logger.info(f"Model '{model_name}' successfully pulled")
         logger.info(f"Attempting to load model '{model_name}'...")
-        return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx)
+        if base_url is not None:
+            return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx, base_url=base_url)
+        else:
+            return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx)
         
           
     
