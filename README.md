@@ -32,7 +32,7 @@ Inspired by the capabilities of CrewAI, I realized the power of automation could
 - **Familiar Interface**: Leveraging a Google Sheets UI, this tool brings advanced automation into an easy-to-use, familiar format, perfect for anyone looking to dive into automation without the steep learning curve.
 
 
-### Setup Guide for Running with Docker(For users and developers)
+### Setup Guide for Running with Docker (for users)
 
 This guide provides instructions for setting up and running a Docker container for your application, using various external APIs for enhanced functionality.
 
@@ -43,16 +43,16 @@ This guide provides instructions for setting up and running a Docker container f
   - [Docker Installation Guide](https://docs.docker.com/get-docker/)
 
 #### API Keys:
-You will need to obtain API keys from the following providers. A singel API key is sufficient. You don't need all:
-Optionally, if you wan to run your LLM locally, without a cloud provider, intall [Ollama] (https://ollama.com/)
+You will need to obtain API keys from the following providers. A single API key is sufficient. You don't need all:
+Optionally, if you want to run your LLM locally, without a cloud provider, install [Ollama](https://ollama.com/)
 
 - **OpenAI**: [OpenAI API Keys](http://platform.openai.com/)
 - **Anthropic API**: [Anthropic API Access](https://www.anthropic.com/api)
 - **Groq API**: [Groq API Details](https://console.groq.com/playground) This is FREE at the moment.
 - **Hugging Face Hub**: [Hugging Face API Tokens](https://huggingface.co/settings/tokens) Some models FREE at the moment.
-- **Azure OpenAI**: [Azure OpenAI Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/openai/) (Mainly for Enterprses)
+- **Azure OpenAI**: [Azure OpenAI Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/openai/) (mainly for Enterprises)
 
-Optinally, Serper API if you wan to use Serper insted of DuckDuckGO.
+Optionally, Serper API if you want to use Serper instead of DuckDuckGo.
 - **Serper API**: [Serper API Documentation](https://serpapi.com/)
 
 #### Running the Container:
@@ -97,8 +97,8 @@ docker run -it -p 11434:11434 \
 
 #### Notes:
 - Ensure that each environment variable is set correctly without leading or trailing spaces.
-- If you want alternative setup, i.e. replacing Ollama with LM studio, laamacpp, etc, check network settings and port mappings as per your configuration requirements.
-- A folder 'savefiles' will be created in the folder you run this from. This is where the agents will save their work. 
+- If you want an alternative setup, i.e., replacing Ollama with LM studio, laamacpp, etc., check network settings and port mappings as per your configuration requirements.
+- A folder 'savefiles' will be created in the folder you run this from. This is where the agents will save their work.
 - Star the repo to keep motivation up ;)
 
 
@@ -128,10 +128,9 @@ To get started with the project, follow these steps:
    python ./main.py
    ```
 
-### Usage and first step.
+### Usage and first steps.
 TODO: 
-Hopefully it's intuotive enough meanwhile
-
+Hopefully it's intuitive enough meanwhile
 ### Dependencies
 A range of packages are utilized in this project:
 - crewai
