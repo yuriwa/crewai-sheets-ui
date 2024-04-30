@@ -35,7 +35,7 @@ class HuggingFaceConfig:
 
 class GroqConfig:
     max_tokens = 1000
-    stop = ['\\_']
+    stop = []
     def get_rate_limit(model_name:str):
         model_rate_dict = {
             'llama2-70b-4096'   :15000,
