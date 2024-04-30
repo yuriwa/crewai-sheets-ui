@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from utils.helpers import load_env
 logger = logging.getLogger(__name__)
-load_env("../../ENV/.env", ["OPENAI_API_KEY",])  
+#load_env("../../ENV/.env", ["OPENAI_API_KEY",])
 
 #Class to manage the configuration of the LLM to Tools
 class ConfigurationManager:

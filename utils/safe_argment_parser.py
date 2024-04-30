@@ -1,13 +1,15 @@
 import logging
+
 logger = logging.getLogger(__name__)
 from RestrictedPython.PrintCollector import PrintCollector
 from RestrictedPython.Guards import safe_builtins
 from RestrictedPython.Eval import default_guarded_getitem
-from RestrictedPython  import compile_restricted
-from config.config  import ToolsConfig
-import pandas    as pd
+from RestrictedPython import compile_restricted
+from config.config import ToolsConfig
+import pandas as pd
 
 integration_dict = ToolsConfig.integration_dict
+
 
 def get_safe_execution_environment(integration_dict):
     """
@@ -25,10 +27,11 @@ def get_safe_execution_environment(integration_dict):
     safe_globals.update(integration_dict)
 
     safe_locals = {
-        '_print_': PrintCollector(),
-        '_getitem_': default_guarded_getitem
+            '_print_':   PrintCollector(),
+            '_getitem_': default_guarded_getitem
     }
     return safe_globals, safe_locals
+
 
 def parse_arguments(arg_str):
     max_length = 1000
@@ -37,7 +40,7 @@ def parse_arguments(arg_str):
     if len(arg_str) > max_length:
         logger.error(f"Argument string exceeds maximum length of {max_length} characters.")
         raise ValueError(f"Input too long. Maximum allowed length is {max_length} characters.")
-    
+
     args, kwargs = [], {}
     globals_dict, locals_dict = get_safe_execution_environment(integration_dict)
 
