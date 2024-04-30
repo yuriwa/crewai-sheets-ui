@@ -1,4 +1,6 @@
 import logging
+logger = logging.getLogger(__name__)
+logger.debug(f"Entered {__file__}")
 from rich.console import Console
 from rich.syntax import Syntax
 from pydantic.v1 import BaseModel, Field
@@ -7,9 +9,6 @@ from pygments.lexer import RegexLexer
 from pygments.token import Token
 from typing import Type, Any
 from crewai_tools import BaseTool
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class BSharpLexer(RegexLexer):
     """
@@ -46,8 +45,7 @@ class BSharpCodeTool(BaseTool):
     Tool to display BSharp code with syntax highlighting using the Rich library and a custom Pygments lexer.
     """
     name: str = "BSharp Code Output Tool"
-    description: str = "Tool to display BSharp code with syntax highlighting."
-
+    description: str = "Tool to display BSharp code with syntax highlighting. Takes in one parameter: 'code' - the BSharp code to be highlighted and displayed."
     args_schema: Type[BaseModel] = BSharpCodeToolSchema
 
     def __init__(self, **kwargs):
@@ -57,12 +55,11 @@ class BSharpCodeTool(BaseTool):
     def _run(self, **kwargs: Any) -> Any:
         code = kwargs.get('code')
         if not code:
-            logger.error("No code provided for highlighting.")
-            return "Error: No code provided for highlighting."
+            return "Error: No code provided for highlighting. Please provide BSharp code as the 'code' parameter."
 
         console = Console()
-        syntax = Syntax(code, lexer=BSharpLexer(), theme="native", line_numbers=True)
-        console.print(f"\n{syntax}")
+        syntax = Syntax(code, lexer=BSharpLexer(), theme="github-dark", line_numbers=True)
+        console.print(syntax)
         return code
 
 # Example usage
