@@ -1,8 +1,107 @@
 ![# crewai-sheets-ui Project](https://repository-images.githubusercontent.com/778369177/0b532ef9-0315-49f6-9edf-83496ae0f399)
 
-## Overview
-The `crewai-sheets-ui` project automates the process of integrating Google Sheets data to dynamically create and execute tasks and agents. This system leverages a mix of external libraries and proprietary tools to efficiently handle task management and execution.
+### Motivation
 
+Inspired by the capabilities of CrewAI, I realized the power of automation could be more accessible. This project is about sharing that power—helping friends and colleagues harness AI to streamline their tasks, even if they aren't deep into coding themselves. It’s about making sophisticated technology approachable for anyone interested in automating the routine, allowing them to focus on their passions.
+
+### Features
+
+#### Staff
+- **GPT Agents**: Offers a set of extendable GPT agents. Choose from predefined options or add your custom agents to fit your specific needs.
+
+#### Projects
+- **Project Management**: Keep all your crew assignments in one convenient location. Choose and manage projects with a single click, making it simpler to focus on what really matters.
+
+#### Tools
+- **Extensive Tools Library**: From `crewai-sheets-ui` to `crewai-tools`, including the latest from `langchain` and `langchain-community`.
+- **Tool Integration Made Easy**: Add tools from the `langchain` collections directly—just like that.
+- **Custom Tool Addition**: Easily configure and integrate your own tools.
+- **Executor Tool**: A powerful feature based on `open-interpreter` that runs commands and crafts code for tools not yet supported.
+
+#### Model Management
+- **Rapid Model Switching**: Switch between LLM models for various functions effortlessly—whether it’s for different agents, tasks, or entire toolsets.
+- **Detailed LLM Configurations**: Set precise configurations for each model and tool, offering you full control over their application.
+- **Comprehensive Model Support**: Compatible with major LLM providers such as OpenAI, Azure, Anthropic, Groq, and Hugging Face. Integrate any model from these providers with a simple click.
+
+#### Local and Online Model Support
+- **Local Models**: Fully supports local models, giving you the flexibility to run operations offline or use specific models that aren’t available online.
+- **Groq Rate Throttling**: Efficiently utilize Groq’s API without worrying about hitting usage caps.
+
+#### User Experience
+- **Easy Startup with Docker**: Get started quickly and safely using Docker, ensuring a secure and clean setup.
+- **Familiar Interface**: Leveraging a Google Sheets UI, this tool brings advanced automation into an easy-to-use, familiar format, perfect for anyone looking to dive into automation without the steep learning curve.
+
+
+### Setup Guide for Running with Docker(For users and developers)
+
+This guide provides instructions for setting up and running a Docker container for your application, using various external APIs for enhanced functionality.
+
+#### Prerequisites:
+- **Check if Docker is installed:**
+  - **Windows/Linux/MacOS:** Run `docker --version` in your command prompt or terminal. If Docker is installed, you will see the version number. If not, follow the installation link below.
+- **Install Docker (if not installed):**
+  - [Docker Installation Guide](https://docs.docker.com/get-docker/)
+
+#### API Keys:
+You will need to obtain API keys from the following providers. A singel API key is sufficient. You don't need all:
+Optionally, if you wan to run your LLM locally, without a cloud provider, intall [Ollama] (https://ollama.com/)
+
+- **OpenAI**: [OpenAI API Keys](http://platform.openai.com/)
+- **Anthropic API**: [Anthropic API Access](https://www.anthropic.com/api)
+- **Groq API**: [Groq API Details](https://console.groq.com/playground) This is FREE at the moment.
+- **Hugging Face Hub**: [Hugging Face API Tokens](https://huggingface.co/settings/tokens) Some models FREE at the moment.
+- **Azure OpenAI**: [Azure OpenAI Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/openai/) (Mainly for Enterprses)
+
+Optinally, Serper API if you wan to use Serper insted of DuckDuckGO.
+- **Serper API**: [Serper API Documentation](https://serpapi.com/)
+
+#### Running the Container:
+- Replace any API KEYS that you have in the below. Do not edit anything else.
+- Copy the command for your system to your terminal or powershell.
+
+- **Linux/MacOS:**
+
+```bash
+mkdir -p ./savefiles && docker build -t crewai-image https://github.com/yuriwa/crewai-sheets-ui.git#v1.0.0 && \
+docker run -it -p 11434:11434 \
+  -v $(pwd)/savefiles:/home/user/root/savefiles \
+  -e AZURE_OPENAI_KEY='CHANGE THIS TO YOUR AZURE_OPENAI_KEY' \
+  -e SECRET_OPENAI_API_KEY='CHANGE THIS TO YOUR SECRET_OPENAI_API_KEY' \
+  -e SERPER_API_KEY='CHANGE THIS TO YOUR SERPER_API_KEY' \
+  -e AZURE_OPENAI_VERSION='2024-02-15-preview' \
+  -e AZURE_OPENAI_API_KEY='CHANGE THIS TO YOUR AZURE_OPENAI_API_KEY' \
+  -e AZURE_OPENAI_ENDPOINT='CHANGE THIS TO YOUR AZURE_OPENAI_ENDPOINT' \
+  -e ANTHROPIC_API_KEY='CHANGE THIS TO YOUR ANTHROPIC_API_KEY' \
+  -e GROQ_API_KEY='CHANGE THIS TO YOUR GROQ_API_KEY' \
+  -e HUGGINGFACEHUB_API_TOKEN='CHANGE THIS TO YOUR HUGGINGFACEHUB_API_TOKEN' \
+  crewai-image python /home/user/root/crewai-sheets-ui/main.py
+
+```
+
+- **Windows (PowerShell):**
+New-Item -ItemType Directory -Path .\savefiles -Force; docker build -t crewai-image https://github.com/yuriwa/crewai-sheets-ui.git#v1.0.0 && \
+docker run -it -p 11434:11434 \
+  -v ${PWD}\savefiles:/home/user/root/savefiles \
+  -e AZURE_OPENAI_KEY='CHANGE THIS TO YOUR AZURE_OPENAI_KEY' \
+  -e SECRET_OPENAI_API_KEY='CHANGE THIS TO YOUR SECRET_OPENAI_API_KEY' \
+  -e SERPER_API_KEY='CHANGE THIS TO YOUR SERPER_API_KEY' \
+  -e AZURE_OPENAI_VERSION='2024-02-15-preview' \
+  -e AZURE_OPENAI_API_KEY='CHANGE THIS TO YOUR AZURE_OPENAI_API_KEY' \
+  -e AZURE_OPENAI_ENDPOINT='CHANGE THIS TO YOUR AZURE_OPENAI_ENDPOINT' \
+  -e ANTHROPIC_API_KEY='CHANGE THIS TO YOUR ANTHROPIC_API_KEY' \
+  -e GROQ_API_KEY='CHANGE THIS TO YOUR GROQ_API_KEY' \
+  -e HUGGINGFACEHUB_API_TOKEN='CHANGE THIS TO YOUR HUGGINGFACEHUB_API_TOKEN' \
+  crewai-image python /home/user/root/crewai-sheets-ui/main.py
+
+
+#### Notes:
+- Ensure that each environment variable is set correctly without leading or trailing spaces.
+- If you want alternative setup, i.e. replacing Ollama with LM studio, laamacpp, etc, check network settings and port mappings as per your configuration requirements.
+- A folder 'savefiles' will be created in the folder you run this from. This is where the agents will save their work. 
+- Star the repo to keep motivation up ;)
+
+
+### Devaloper setup
 ## Setup
 To get started with the project, follow these steps:
 1. Clone the repository:
@@ -28,23 +127,11 @@ To get started with the project, follow these steps:
    python ./main.py
    ```
 
-## Usage
-Launch the application and input the URL of your Google Sheet when prompted. The script will process the data to generate tasks and agents, which are then executed automatically.
+### Usage and first step.
+TODO: 
+Hopefully it's intuotive enough meanwhile
 
-### Advanced Usage
-By default, the Agent and Crew memory features are enabled. To customize the memory settings, add the OpenAI API base URL and API key to the `.env` file or host your own model locally:
-- `.env` example:
-  ```
-  OPENAI_API_BASE='http://localhost:8080/v1' #host and port where you local embed model is running
-  OPENAI_MODEL_NAME='does-not-matter'
-  OPENAI_API_KEY='111111111111111111111'
-  ```
-- To run your own model server, use:
-  ```
-  ./server -m {embedding-modelname} -c 32768 --verbose --embedding
-  ```
-
-## Dependencies
+### Dependencies
 A range of packages are utilized in this project:
 - crewai
 - crewai-tools
@@ -57,23 +144,5 @@ A range of packages are utilized in this project:
 
 Refer to the `requirements.txt` file for a complete list of dependencies.
 
-## Usage with Docker
-Set up the project using Docker with these steps:
-1. Install Docker for your operating system.
-2. Download the Dockerfile:
-   ```
-   wget https://github.com/yuriwa/crewai-sheets-ui/blob/main/Dockerfile
-   ```
-3. Build the Docker image:
-   ```
-   docker build --no-cache -t crewai-image .
-   ```
-4. Run the Docker container:
-   ```
-   docker run -it -p 1234:1234 -v ${savefile/path/on/your/computer}:/home/user/root/savefiles -e OPENAI_API_KEY='{YOUR_OPENAI_API_KEY}' crewai-image
-   ```
-
-If opting to use a local language model server instead of OpenAI, host your server using LM Studio, llama.cpp or a similar tool.
-
-## Contributing
+### Contributing
 Contributions to the crewai-sheets-ui project are welcome. Please ensure to follow the project's code of conduct and submit pull requests for any enhancements or bug fixes.
