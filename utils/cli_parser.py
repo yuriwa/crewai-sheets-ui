@@ -26,6 +26,7 @@ def get_parser():
     ERROR - Information about major problems
     CRITICAL - Information about critical problems \nDefault: ERROR
     """)
+    parser.add_argument("--env_path", type=str, default="../../ENV/.env")
                 
     parser.add_argument("--version", action="version", version=version_string,
         help="Show program's version number and exit")
