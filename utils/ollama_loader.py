@@ -11,6 +11,7 @@ class OllamaLoader:
         try:
             # This will try to resolve the special Docker DNS name for the host.
             host_ip = socket.gethostbyname('host.docker.internal')
+            print(f"Runing in docker. host_ip: {host_ip}")
             return True if host_ip else False
         except socket.gaierror:
             # The name is not known, which likely means not running inside Docker
