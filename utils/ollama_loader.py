@@ -9,8 +9,8 @@ def running_in_docker():
         try:
             # This will try to resolve the special Docker DNS name for the host.
             host_ip = socket.gethostbyname('host.docker.internal')
-            print(f"Hey, it looks like I'm running inside a docker container.")
-            print(f"There was no base_url set for this model, so I'll assume it's {host_ip}:11434.")                      
+            #print(f"Hey, it looks like I'm running inside a docker container.")
+            #print(f"There was no base_url set for this model, so I'll assume it's {host_ip}:11434.")                      
             return True if host_ip else False
         except socket.gaierror:
             # The name is not known, which likely means not running inside Docker
