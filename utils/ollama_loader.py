@@ -5,10 +5,7 @@ from     rich.progress import Progress
 from     ollama import list, pull, Client
 logger = logging.getLogger(__name__)
 
-
-class OllamaLoader:
-    
-    def running_in_docker():
+def running_in_docker():
         try:
             # This will try to resolve the special Docker DNS name for the host.
             host_ip = socket.gethostbyname('host.docker.internal')
@@ -18,6 +15,9 @@ class OllamaLoader:
             print("Not running in docker")                                      #TODO: Remove print
             # The name is not known, which likely means not running inside Docker
             return False
+    
+class OllamaLoader:
+    
     
     def handle_progress_updates(progress_update, progress, llm_task):
         """
@@ -36,20 +36,21 @@ class OllamaLoader:
         """
         Loads the specified model from Ollama, or pulls it if it does not exist.
         """
-        if OllamaLoader.running_in_docker():
-            ollama_client = Client(host='http://host.docker.internal:11434')    #TODO: Move to config
-            base_url = 'http://host.docker.internal:11434'                      #TODO: Move to config
+
+        if running_in_docker():
+            if base_url is None:
+                base_url = 'http://host.docker.internal:11434'                  #TODO: Move to config
+            ollama_client = Client(host=base_url)    
+            
         print(f"base_url: {base_url}")
 
         parts = model_name.split(':')
         if len(parts) < 2 :
             print (f"Ollama models usually have a version, like {model_name}:instruct, or {model_name}:latest. That's ok, I'll take a guess and use the latest version.")
 
-        if ollama_client is not None:
-            model_list = ollama_client.list()['models']
-            print(f"Model list: {model_list}")
-        else:    
-            model_list = list()['models']
+        
+        model_list = list()['models'] if ollama_client is None else ollama_client.list()['models']
+        
         for model in model_list:
             if model['name'] == model_name:
                 logger.info(f"Model '{model_name}' found in Ollama, loading directly.")
@@ -65,11 +66,16 @@ class OllamaLoader:
         progress = Progress(expand=True, transient=True)
         with progress:
             llm_task = progress.add_task(f"Downloading '{model_name}'", total=1000)
-            for response in pull(model=model_name, stream=True):
-                OllamaLoader.handle_progress_updates(response, progress, llm_task)
-            
+            if ollama_client is None:
+                for response in pull(model=model_name, stream=True):
+                    OllamaLoader.handle_progress_updates(response, progress, llm_task)
+            else:
+                for response in ollama_client.pull(model=model_name, stream=True):
+                    OllamaLoader.handle_progress_updates(response, progress, llm_task)
+
         logger.info(f"Model '{model_name}' successfully pulled")
         logger.info(f"Attempting to load model '{model_name}'...")
+        print(f"Model '{model_name}' successfully pulled. Now I'm trying to load it...")
         if base_url is not None:
             return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx, base_url=base_url)
         else:
