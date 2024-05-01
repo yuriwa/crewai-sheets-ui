@@ -37,6 +37,7 @@ class OllamaLoader:
         """
         if base_url is None and OllamaLoader.running_in_docker():
             base_url = 'http://host.docker.internal:11434'
+        print(f"base_url: {base_url}")
 
         parts = model_name.split(':')
         if len(parts) < 2 :
