@@ -8,37 +8,36 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install poetry
 
 # Clone crewai-sheet-ui
-RUN git clone https://github.com/yuriwa/crewai-sheets-ui.git /home/user/root/crewai-sheets-ui
+RUN git clone https://github.com/yuriwa/crewai-sheets-ui.git /home/user/root/crewai-sheets-ui 
 # Set the working directory in the Docker image
-
 WORKDIR /home/user/root/crewai-sheets-ui
+
+ENV PEP517_BUILD_BACKEND=setuptools.build_meta
+
 # Configure poetry to not create a virtual environment and install dependencies
-RUN poetry config virtualenvs.create false && \
-    poetry install
+RUN poetry config virtualenvs.create false && poetry install
+
 RUN pip install langchain_groq
 
 RUN mkdir /home/user/root/ENV
 # Create an .env file and add the exports
-RUN echo "export VAR1=value1\nexport VAR2=value2" > /home/user/root/crewai-sheets-ui/../ENV/.env
+RUN echo "export VAR1=value1\nexport VAR2=value2\nexport VAR3=value3\nexport VAR4=value4\nexport VAR5=value5\nexport VAR6=value6\nexport VAR7=value7\nexport VAR8=value8\nexport VAR9=value9" > /home/user/root/crewai-sheets-ui/../ENV/.env
 
-# Expose port 1234
-EXPOSE 1234
+# Expose port 11434
+EXPOSE 11434
+
 WORKDIR /home/user/root/savefiles
 
 CMD if [ -z "$OPENAI_API_KEY" ]; then \
-      echo "Required environment variables are not set." && \
-      echo "Run the Docker container, mapping local port 1234 to container port 1234 and the current directory to /home/user in the container:" && \
-      echo "docker run -it -p 1234:1234 -v \${local/savefile/path}:/home/user/root/savefiles -e OPENAI_API_KEY='\${YOUR API KEY}' crewai-image"; \
+      echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
+      echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
+      echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
     elif [ ! -d "/home/user/root/savefiles" ]; then \
       echo "The required volume is not mounted." && \
-      echo "Run the Docker container, mapping local port 1234 to container port 1234 and the current directory to /home/user in the container:" && \
-      echo "docker run -it -p 1234:1234 -v \${local/savefile/path}:/home/user/root/savefiles -e OPENAI_API_KEY='\${YOUR API KEY}' crewai-image"; \
-    else \
-      python /home/user/root/crewai-sheets-ui/main.py && \
-      echo "All set."; \
+      echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
+      echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
+      echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
     fi
-#TODO mkfir /home/user/root/savefiles
-#TODO nginx -c /home/user/root/savefiles/config
 
-# Run the Docker container, mapping local port 1234 to container port 1234 and the current directory to /home/user in the container
-#docker run -it -p 1234:1234 -v /{local/savefile/path}}:/home/user/root/savefiles -e OPENAI_API_KEY='sk-111111111111111111' -e SERPER_API_KEY='1111111111' crewai-image python main.py
+
+

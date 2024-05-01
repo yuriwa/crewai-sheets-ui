@@ -62,7 +62,8 @@ Optionally, Serper API if you want to use Serper instead of DuckDuckGo.
 - **Linux/MacOS:**
 
 ```bash
-mkdir -p ./savefiles && docker build -t crewai-image https://github.com/yuriwa/crewai-sheets-ui.git && \
+mkdir -p ./savefiles && \
+docker build -t crewai-image https://github.com/yuriwa/crewai-sheets-ui.git && \
 docker run -it -p 11434:11434 \
   -v $(pwd)/savefiles:/home/user/root/savefiles \
   -e AZURE_OPENAI_KEY='CHANGE THIS TO YOUR AZURE_OPENAI_KEY' \
@@ -74,6 +75,7 @@ docker run -it -p 11434:11434 \
   -e ANTHROPIC_API_KEY='CHANGE THIS TO YOUR ANTHROPIC_API_KEY' \
   -e GROQ_API_KEY='CHANGE THIS TO YOUR GROQ_API_KEY' \
   -e HUGGINGFACEHUB_API_TOKEN='CHANGE THIS TO YOUR HUGGINGFACEHUB_API_TOKEN' \
+  -e OPENAI_API_KEY='DONT CHANGE THIS USE SECRET OPENAIAPIKEY' \
   crewai-image python /home/user/root/crewai-sheets-ui/main.py
 
 ```
@@ -92,6 +94,7 @@ docker run -it -p 11434:11434 \
   -e ANTHROPIC_API_KEY='CHANGE THIS TO YOUR ANTHROPIC_API_KEY' \
   -e GROQ_API_KEY='CHANGE THIS TO YOUR GROQ_API_KEY' \
   -e HUGGINGFACEHUB_API_TOKEN='CHANGE THIS TO YOUR HUGGINGFACEHUB_API_TOKEN' \
+  -e OPENAI_API_KEY='DONT CHANGE THIS USE SECRET OPENAIAPIKEY' \
   crewai-image python /home/user/root/crewai-sheets-ui/main.py
 ```
 
