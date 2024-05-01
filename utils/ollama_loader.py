@@ -14,6 +14,7 @@ class OllamaLoader:
             print(f"Runing in docker. host_ip: {host_ip}")
             return True if host_ip else False
         except socket.gaierror:
+            print("Not running in docker")
             # The name is not known, which likely means not running inside Docker
             return False
     
