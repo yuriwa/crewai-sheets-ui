@@ -2,19 +2,20 @@ import   logging
 import   socket
 from     langchain_community.llms.ollama import Ollama
 from     rich.progress import Progress
-from     ollama import list, pull
+from     ollama import list, pull, Client
 logger = logging.getLogger(__name__)
 
 
 class OllamaLoader:
+    
     def running_in_docker():
         try:
             # This will try to resolve the special Docker DNS name for the host.
             host_ip = socket.gethostbyname('host.docker.internal')
-            print(f"Runing in docker. host_ip: {host_ip}")
+            print(f"Runing in docker. host_ip: {host_ip}")                      #TODO: Remove print
             return True if host_ip else False
         except socket.gaierror:
-            print("Not running in docker")
+            print("Not running in docker")                                      #TODO: Remove print
             # The name is not known, which likely means not running inside Docker
             return False
     
@@ -35,19 +36,24 @@ class OllamaLoader:
         """
         Loads the specified model from Ollama, or pulls it if it does not exist.
         """
-        if base_url is None and OllamaLoader.running_in_docker():
-            base_url = 'http://host.docker.internal:11434'
+        if OllamaLoader.running_in_docker():
+            ollama_client = Client(host='http://host.docker.internal:11434')    #TODO: Move to config
+            base_url = 'http://host.docker.internal:11434'                      #TODO: Move to config
         print(f"base_url: {base_url}")
 
         parts = model_name.split(':')
         if len(parts) < 2 :
             print (f"Ollama models usually have a version, like {model_name}:instruct, or {model_name}:latest. That's ok, I'll take a guess and use the latest version.")
 
-            
-        model_list = list()['models']
+        if ollama_client is not None:
+            model_list = ollama_client.list()['models']
+            print(f"Model list: {model_list}")
+        else:    
+            model_list = list()['models']
         for model in model_list:
             if model['name'] == model_name:
                 logger.info(f"Model '{model_name}' found in Ollama, loading directly.")
+                
                 if base_url is not None:
                     return Ollama(model=model_name, temperature=temperature, num_ctx=num_ctx, base_url=base_url)
                 else:
