@@ -9,10 +9,10 @@ def running_in_docker():
         try:
             # This will try to resolve the special Docker DNS name for the host.
             host_ip = socket.gethostbyname('host.docker.internal')
-            print(f"Runing in docker. host_ip: {host_ip}")                      #TODO: Remove print
+            print(f"Hey, it looks like I'm running inside a docker container.")
+            print(f"There was no base_url set for this model, so I'll assume it's {host_ip}:11434.")                      
             return True if host_ip else False
         except socket.gaierror:
-            print("Not running in docker")                                      #TODO: Remove print
             # The name is not known, which likely means not running inside Docker
             return False
     
@@ -40,9 +40,10 @@ class OllamaLoader:
         if running_in_docker():
             if base_url is None:
                 base_url = 'http://host.docker.internal:11434'                  #TODO: Move to config
-            ollama_client = Client(host=base_url)    
+            ollama_client = Client(host=base_url)
+        else:
+            ollama_client = None    
             
-        print(f"base_url: {base_url}")
 
         parts = model_name.split(':')
         if len(parts) < 2 :
