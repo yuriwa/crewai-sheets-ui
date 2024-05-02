@@ -30,7 +30,6 @@ class Sheets:
                 data = pd.read_csv(url, usecols=columns)
                 if worksheet == 'Agents': # sanitize the data
                     data.dropna(subset=['Agent Role'], inplace=True)
-                    # Now you can safely perform type conversions
 
                     for col in ['Agent Role', 'Goal','Backstory', 'Tools', 'Model Name', 'Function Calling Model']:
                         data[col] = data[col].astype(str).apply(dedent).replace('None', None)
@@ -55,8 +54,8 @@ class Sheets:
                         if data[col].dtype != 'object':
                             raise ValueError(f"Column '{col}' is not of type 'Plain Text'.")                  
                 if worksheet == "Crew":
-                    for col in ['Team Name', 'Assignment', 'Process', 'Embedding model', 'Manager LLM']:
-                        data[col] = data[col].astype(str).apply(dedent).replace('None', None)
+                    for col in ['Team Name', 'Assignment', 'Process', 'Embedding model', 'Manager LLM']:                    
+                        data[col] = data[col].astype(str).apply(dedent).replace('None', None).replace('nan', None)
                     for col in ['Verbose', 'Memory']:
                         data[col] = data[col].astype(bool)
                     data['t'] = data['t'].astype(float)
@@ -84,7 +83,7 @@ class Sheets:
                 break
             except ValueError as e:
                 logger.error(f"ValueError occurred: {e}")
-                print(f"Oops! Something went bonkers with the sheet '{url}'. Maybe it's playing hide and seek? {e}")
+                print(f"Oops! Something went bonkers with the sheet. {e}")
                 url = get_sheet_url_from_user()
                 num_att += 1
             except URLError as e:

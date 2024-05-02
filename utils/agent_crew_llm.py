@@ -55,7 +55,8 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
                 #stop = ["\nObservation"] 
             )
         except Exception as e:
-            print(f"Failed to configure Anthropic model '{model_name}':\n{e}")
+            print(f"Hey, I've failed to configure Anthropic model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
+            return None
     
     #Azure OpenaI   
     if provider.lower() == "azure_openai":
@@ -70,8 +71,8 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
                 temperature=temperature
                 )
         except Exception as e:
-            print(f"Failed to configure Azure OpenAI model '{model_name}':\n{e}")
-    
+            print(f"Hey, I've failed to configure Azure OpenAI model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
+            return None
     #OpenAI
     if provider.lower() == "openai":
         logger.info(f"Trying {provider} model '{model_name}' with temperature {temperature}," 
@@ -86,8 +87,8 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
                 base_url        = base_url,
                 )
         except Exception as e:
-            print(f"Failed to configure OpenAI model '{model_name}':\n{e}")
-
+            print(f"Hey, I've failed to configure OpenAI model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
+            return None
     #OpenAI comatipble via /v1 protocol LM Studio, llamacpp, ollama, etc
     if provider.lower() == "openai_compatible":
         logger.info(f"Trying {provider} model '{model_name}' with temperature {temperature}, base_url {base_url}")
@@ -99,7 +100,8 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
                 openai_api_key  = 'NA' #TODO suppoert for local llm API key's
                 )
         except Exception as e:
-            print(f"Failed to configure OpenAI model '{model_name}':\n{e}")
+            print(f"Hey, I've failed to configure OpenAI model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
+            return None
     #Groq
     if provider.lower() == "groq":
         max_tokens = config.GroqConfig.max_tokens
@@ -115,21 +117,26 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
                 #base_url        = base_url,
                 )
         except Exception as e:
-            print(f"Failed to configure Groq model '{model_name}':\n{e}")
-    
+            print(f"Hey, I've failed to configure Groq model '{model_name}'. Could you check if the API KEY is set?\n{e}")
+            return None
+        
     #huggingface
     if provider.lower() == "huggingface":   
         logger.info(f"Trying {provider} repo_id '{model_name}' with hugingfacehub_api_token. via env")       
-        return HuggingFaceEndpoint(
-            repo_id=model_name,
-            huggingfacehub_api_token=os.environ.get("HUGGINGFACEHUB_API_TOKEN"),
-            stop_sequences = config.HuggingFaceConfig.stop_sequences,
-            #model_kwargs = {"max_length": 10000}                #need to read documentation
-            #max_new_tokens = 1000,                              #need to read documentation
-            #max_length = 1000,                                  #need to read documentation
-            #task="text-generation",
-        )
-    
+        try:
+            return HuggingFaceEndpoint(
+                repo_id=model_name,
+                huggingfacehub_api_token=os.environ.get("HUGGINGFACEHUB_API_TOKEN"),
+                stop_sequences = config.HuggingFaceConfig.stop_sequences,
+                #model_kwargs = {"max_length": 10000}                #need to read documentation
+                #max_new_tokens = 1000,                              #need to read documentation
+                #max_length = 1000,                                  #need to read documentation
+                #task="text-generation",
+            )
+        except Exception as e:
+            print(f"Hey, I've failed to configure HuggingFace model '{model_name}'. Could you check if the API KEY is set? \n{e}")  
+            return None
+    #Ollama
     if provider.lower() == "ollama":
         logger.info(f"Trying {provider} model '{model_name}' with num_ctx {num_ctx}.")
         try:
@@ -141,7 +148,7 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
                 stop = config.OllamaConfig.stop_words #don't pass - crewai aleady does this itself.
             )
         except Exception as e:
-            print(f"Failed to configure Ollama model '{model_name}':\n{e}")
+            print(f"Hey, I've failed to configure Ollama model '{model_name}':\n{e}")
 
     logger.error(f"Provider '{provider}' not recognized. Please use one of the supported providers: 'anthropic', 'azure_openai', 'openai', 'huggingface', 'ollama'.")   
     return None
