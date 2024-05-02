@@ -9,9 +9,9 @@ import   crewai_tools
 import   tools 
 
 class AppConfig:
-    version = "0.4.0"
+    version = "0.5.0"
     name= "crewai-sheets-ui"
-    template_sheet_url = "https://docs.google.com/spreadsheets/d/1tyNTf1HdL0i9qOG82sOxBlQr1gkAFnvoigKAKx3c4EM/copy"
+    template_sheet_url = "https://docs.google.com/spreadsheets/d/1J975Flh82qPjiyUmDE_oKQ2l4iycUq6B3457G5kCD18/copy"
     pass
 
 class ToolsConfig:
