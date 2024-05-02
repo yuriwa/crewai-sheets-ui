@@ -161,15 +161,24 @@ def create_tasks_from_df(row, assignment, created_agents, **kwargs):
 def create_crew(created_agents, created_tasks, crew_df):
     # Embedding model (Memory)
     memory = crew_df['Memory'][0]
-    embedding_model = crew_df['Embedding model'][0]
-    deployment_name = models_df.loc[models_df['Model'] == embedding_model, 'Deployment'].values[0]
-    provider = models_df.loc[models_df['Model'] == embedding_model, 'Provider'].values[0]
-    base_url = models_df.loc[models_df['Model'] == embedding_model, 'base_url'].values[0]
+    embedding_model = crew_df['Embedding model'].get(0)
+    
+    if embedding_model is None or pd.isna(embedding_model):
+        logger.info("No embedding model for crew specified in the sheet. Turning off memory.")
+        deployment_name = None
+        provider = None
+        base_url = None
+        memory = False
+        embedder_config = None
+    else:
+        deployment_name = models_df.loc[models_df['Model'] == embedding_model, 'Deployment'].values[0]
+        provider = models_df.loc[models_df['Model'] == embedding_model, 'Provider'].values[0]
+        base_url = models_df.loc[models_df['Model'] == embedding_model, 'base_url'].values[0]
 
-    # Create provider specific congig and load proveder specific ENV variables if it can't be avoided
-    embedder_config = {
-            "model": embedding_model,
-    }
+        # Create provider specific congig and load proveder specific ENV variables if it can't be avoided
+        embedder_config = {
+                "model": embedding_model,
+        }
 
     if provider == 'azure-openai':
         embedder_config['deployment_name'] = deployment_name  # Set azure specific config
@@ -180,7 +189,7 @@ def create_crew(created_agents, created_tasks, crew_df):
         embedder_config['api_key'] = os.environ.get("SECRET_OPENAI_API_KEY")
         os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
 
-    else:  # Any other openai compatible e.g. ollama or llama-cpp
+    elif embedder_config is not None :  # Any other openai compatible e.g. ollama or llama-cpp
         provider = 'openai'
         api_key = 'NA'
         embedder_config['base_url'] = base_url
@@ -255,8 +264,8 @@ if __name__ == "__main__":
     created_tasks = tasks_df['crewAITask'].tolist()
 
     # Creating crew
-    console.print("[green]I've created the crew for you. Let's start working on these tasks! :rocket: [/green]")
     crew = create_crew(created_agents, created_tasks, crew_df)
+    console.print("[green]I've created the crew for you. Let's start working on these tasks! :rocket: [/green]")
 
     try:
         results = crew.kickoff()
