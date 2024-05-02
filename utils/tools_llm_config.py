@@ -15,22 +15,21 @@ class ConfigurationManager:
             result = self.df.loc[self.df[where_column] == equals, target_column].iloc[0]
             return result if not pd.isna(result) else None
         except IndexError:
-            logger.error(f"No match found for {equals} in {where_column}")
+            logger.info(f"No match found for {equals} in {where_column}")
             return None
 
     def get_model_details(self, model=None, embedding_model=None):
         # Default settings for OpenAI if specific model details are not provided
-        default_provider = 'openai'
         
         details = {
             'model'                     : model if model else 'gpt-4-turbo-preview',
-            'provider'                  : self.select('Provider', 'Model', model) if model else default_provider,
-            'deployment_name'           : self.select('Deployment', 'Model', model) if model else 'default_deployment',
+            'provider'                  : self.select('Provider', 'Model', model) if model else None,
+            'deployment_name'           : self.select('Deployment', 'Model', model) if model else None,
             'base_url'                  : self.select('base_url', 'Model', model) if model else None,
             'api_key'                   : "NA",
             'embedding_model'           : embedding_model if embedding_model else 'text-embedding-3-small',
-            'provider_embedding'        : self.select('Provider', 'Model', embedding_model) if embedding_model else default_provider,
-            'deployment_name_embedding' : self.select('Deployment', 'Model', embedding_model) if embedding_model else 'default_embedding_deployment',
+            'provider_embedding'        : self.select('Provider', 'Model', embedding_model) if embedding_model else None,
+            'deployment_name_embedding' : self.select('Deployment', 'Model', embedding_model) if embedding_model else None,
             'base_url_embedding'        : self.select('base_url', 'Model', embedding_model) if embedding_model else None,
             'api_key_embedding'         : "NA"
         }
@@ -82,7 +81,11 @@ def get_config(model=None, embedding_model=None, models_df=None):
         provider = config[component_key]['provider']
         
         #Provider specific settings:
-        # Additional API key handling based on provider specifications
+        #Additional API key handling based on provider specifications
+        if provider is None or pd.isna(provider):
+            logger.info(f"No provider found for {component_key}")
+            config.pop(component_key)
+            continue
         if provider == 'openai_compatible':
             config[component_key]['config']['api_key'] = 'NA' #TODO: - get api_key from table
         elif provider == 'azure_openai' and config[component_key]['config']['api_key'] == "NA":
