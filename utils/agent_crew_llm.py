@@ -73,6 +73,7 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
         except Exception as e:
             print(f"Hey, I've failed to configure Azure OpenAI model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
             return None
+        
     #OpenAI
     if provider.lower() == "openai":
         logger.info(f"Trying {provider} model '{model_name}' with temperature {temperature}," 
@@ -89,6 +90,7 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
         except Exception as e:
             print(f"Hey, I've failed to configure OpenAI model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
             return None
+    
     #OpenAI comatipble via /v1 protocol LM Studio, llamacpp, ollama, etc
     if provider.lower() == "openai_compatible":
         logger.info(f"Trying {provider} model '{model_name}' with temperature {temperature}, base_url {base_url}")
@@ -102,6 +104,7 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
         except Exception as e:
             print(f"Hey, I've failed to configure OpenAI model '{model_name}'. Could you check if the API KEY is set? :\n{e}")
             return None
+    
     #Groq
     if provider.lower() == "groq":
         max_tokens = config.GroqConfig.max_tokens
@@ -149,6 +152,7 @@ def get_llm(model_name= None, temperature=0.7, num_ctx = None, provider  = None,
             )
         except Exception as e:
             print(f"Hey, I've failed to configure Ollama model '{model_name}':\n{e}")
+            return None
 
     logger.error(f"Provider '{provider}' not recognized. Please use one of the supported providers: 'anthropic', 'azure_openai', 'openai', 'huggingface', 'ollama'.")   
     return None
