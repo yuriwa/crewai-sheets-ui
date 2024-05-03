@@ -140,7 +140,13 @@ def create_agents_from_df(row, models_df=None, tools_df=None):
             # step_callback:                                             #Callback to be executed after each step of the agent execution.
             # callbacks:                                                 #A list of callback functions from the langchain library that are triggered during the agent's execution process
     }
-    return Agent(config=agent_config)
+    if llm is None:
+        print(f"I couldn't manage to create an llm model for the agent. {role}. The model was supposed to be {model_name}.")
+        print(f"Please check the api keys and model name and the configuration in the sheet. Exiting...")
+        sys.exit(0)
+    else:
+        return Agent(config=agent_config)
+    
 
 
 def get_agent_by_role(agents, desired_role):
