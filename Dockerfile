@@ -24,7 +24,7 @@ RUN mkdir /home/user/root/ENV
 RUN echo "export VAR1=value1\nexport VAR2=value2\nexport VAR3=value3\nexport VAR4=value4\nexport VAR5=value5\nexport VAR6=value6\nexport VAR7=value7\nexport VAR8=value8\nexport VAR9=value9" > /home/user/root/crewai-sheets-ui/../ENV/.env
 
 # Expose port 11434
-EXPOSE 11434
+#EXPOSE 11434
 
 WORKDIR /home/user/root/savefiles
 
