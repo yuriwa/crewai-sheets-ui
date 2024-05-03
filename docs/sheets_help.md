@@ -5,6 +5,7 @@
 **Q: How do I ensure everything functions smoothly?**
 A: Great question! To keep our spreadsheets functioning smoothly, follow these simple habits:
    - Do not insert rows. This breaks the formulas. You can achive the same by copying the botom rows then delete and paste special (values only) lower.
+   - Especially do not insert above the first data row. This will break formulas.
    - Only sort columns that are designated for sorting.
    - Similarly, only apply filters to designated filtering fields.
    - Always use the "Paste Special -> Paste Values Only" option when pasting data.
