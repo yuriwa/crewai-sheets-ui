@@ -107,7 +107,7 @@ docker run -it -p 11434:11434 `
 - Star the repo to keep motivation up ;)
 
 
-## Devaloper setup
+# Devaloper setup
 To get started with the project, follow these steps:
 1. Clone the repository:
    ```
