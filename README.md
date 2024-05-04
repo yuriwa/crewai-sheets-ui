@@ -1,5 +1,7 @@
 ![# crewai-sheets-ui Project](https://repository-images.githubusercontent.com/778369177/0b532ef9-0315-49f6-9edf-83496ae0f399)
 
+<!-- TABLE OF CONTENTS -->
+
 ### Motivation
 
 Inspired by the capabilities of CrewAI, I realized the power of automation could be more accessible. This project is about sharing that power—helping friends and colleagues harness AI to streamline their tasks, even if they aren't deep into coding themselves. It’s about making sophisticated technology approachable for anyone interested in automating the routine, allowing them to focus on their passions.
