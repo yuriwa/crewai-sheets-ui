@@ -18,6 +18,7 @@ ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 RUN poetry config virtualenvs.create false && poetry install
 
 RUN pip install langchain_groq
+RUN pip install sentry-sdk
 
 RUN mkdir /home/user/root/ENV
 # Create an .env file and add the exports

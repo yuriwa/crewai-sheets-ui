@@ -9,7 +9,7 @@ import   crewai_tools
 import   tools 
 
 class AppConfig:
-    version = "0.5.0"
+    version = "0.5.3"
     name= "crewai-sheets-ui"
     template_sheet_url = "https://docs.google.com/spreadsheets/d/1J975Flh82qPjiyUmDE_oKQ2l4iycUq6B3457G5kCD18/copy"
     pass
@@ -31,7 +31,7 @@ class OllamaConfig:
     stop_words = []     
 
 class HuggingFaceConfig:
-    stop_sequences = [] 
+    stop_sequences = ['\nObservation'] 
 
 class GroqConfig:
     max_tokens = 1000

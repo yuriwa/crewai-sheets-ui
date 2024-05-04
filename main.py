@@ -6,6 +6,7 @@ import signal
 from rich.console import Console
 from rich.logging import RichHandler
 
+
 ###
 console = Console()
 logging.basicConfig(level="ERROR", format="%(message)s", datefmt="[%X]",
@@ -40,6 +41,8 @@ from utils.helpers import load_env, is_valid_google_sheets_url, get_sheet_url_fr
 from utils import Sheets, helpers
 
 import pandas as pd
+import sentry_sdk
+from config.config import AppConfig
 
 
 def create_agents_from_df(row, models_df=None, tools_df=None):
@@ -194,6 +197,10 @@ def create_crew(created_agents, created_tasks, crew_df):
     if provider == 'openai':
         embedder_config['api_key'] = os.environ.get("SECRET_OPENAI_API_KEY")
         os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+    
+    if provider == 'ollama':
+        if base_url is not None:
+            embedder_config['base_url'] = base_url
 
     elif embedder_config is not None :  # Any other openai compatible e.g. ollama or llama-cpp
         provider = 'openai'
@@ -239,6 +246,14 @@ def create_crew(created_agents, created_tasks, crew_df):
 
 
 if __name__ == "__main__":
+    release = f"{AppConfig.name}@{AppConfig.version}"
+    if os.environ.get("CREWAI_SHEETS_SENRY") != "False":
+        sentry_sdk.init(
+            dsn="https://fc662aa323fcc1629fb9ea7713f63137@o4507186870157312.ingest.de.sentry.io/4507186878414928",
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+            release=release,
+        )
     helpers.greetings_print()
     args = get_parser()
     log_level = args.loglevel.upper() if hasattr(args, 'loglevel') else "ERROR"

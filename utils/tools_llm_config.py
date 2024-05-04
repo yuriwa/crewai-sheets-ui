@@ -74,6 +74,7 @@ def get_config(model=None, embedding_model=None, models_df=None):
         'openai_compatible': ('deployment_name'),
         'openai': ('deployment_name','base_url'),
         'groq': ('deployment_name', ),
+        'ollama': ('api_base', 'api_key')
     }
     
     for component_key in ['llm', 'embedder']:
@@ -92,6 +93,9 @@ def get_config(model=None, embedding_model=None, models_df=None):
                 config[component_key]['config']['api_key'] = os.environ["AZURE_OPENAI_KEY"] 
         elif provider == 'openai':
                 config[component_key]['config']['api_key'] = os.environ.get("SECRET_OPENAI_API_KEY")
+        elif provider == 'ollama':
+             #Nothin to do
+            pass
         else:
             env_var = f"{provider.upper().replace('-', '_')}_API_KEY"
             config[component_key]['config']['api_key'] = os.environ.get(env_var)
