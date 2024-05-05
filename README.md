@@ -138,3 +138,13 @@ Hopefully it's intuitive enough meanwhile
 
 # Contributing
 Contributions to the crewai-sheets-ui project are welcome. Please ensure to follow the project's code of conduct and submit pull requests for any enhancements or bug fixes.
+
+# Star History
+
+<a href="https://star-history.com/#yuriwa/crewai-sheets-ui&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=yuriwa/crewai-sheets-ui&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=yuriwa/crewai-sheets-ui&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=yuriwa/crewai-sheets-ui&type=Date" />
+ </picture>
+</a>
