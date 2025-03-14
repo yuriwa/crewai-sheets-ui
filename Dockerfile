@@ -15,7 +15,7 @@ WORKDIR /home/user/root/crewai-sheets-ui
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 
 # Configure poetry to not create a virtual environment and install dependencies
-RUN poetry config virtualenvs.create false && poetry install
+RUN poetry config virtualenvs.create false && poetry install --no-root
 
 RUN pip install langchain_groq
 RUN pip install sentry-sdk
