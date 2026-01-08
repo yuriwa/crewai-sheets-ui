@@ -1,3 +1,15 @@
+# ⚠️ Project Closed - Succesor Project 
+This repository was an early iteration of the idea that I built solo as a hobby project. **[EpicStaff](https://github.com/EpicStaff/EpicStaff) is the successor**—it builds on the same core concept and expands it with the features you typically need for agentic workflow development, solid support for business and developer collaboration, production grade arhitecture.
+[EpicStaff](https://github.com/EpicStaff/EpicStaff) is maintained by a large, mature team, so if you’re looking for something production-ready (or you want ongoing support), head over there:
+
+**TL;DR:** More polished, more capable, production-grade and actively maintained.  
+EpicStaff: [https://github.com/EpicStaff/EpicStaff](https://github.com/EpicStaff/EpicStaff)
+
+
+
+*-Yuri*
+
+
 ![# crewai-sheets-ui Project](https://repository-images.githubusercontent.com/778369177/0b532ef9-0315-49f6-9edf-83496ae0f399)
 
 <!-- TABLE OF CONTENTS -->
